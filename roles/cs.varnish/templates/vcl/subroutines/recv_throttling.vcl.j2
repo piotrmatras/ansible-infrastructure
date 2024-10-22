@@ -9,6 +9,7 @@
         ### Throttling rule - {{ rule.id }} ###
         {%- endif %}
 
+        {% if rule.path_pattern | default(false, true) -%}
         if ( req.url ~ "{{ rule.path_pattern }}"
         {%- if rule.method | default(false, true) %} && req.method == "{{ rule.method | upper }}" {% endif -%}
         ) {
@@ -28,6 +29,28 @@
                 unset req.http.X-RateLimit-Remaining;
             {% endif %}
             {%- endif %}
+        {%- endif %}
+        {% if rule.user_agent | default(false, true) -%}
+        if ( req.http.User-Agent ~ "{{ rule.user_agent }}"
+          {%- if rule.method | default(false, true) %} && req.method == "{{ rule.method | upper }}" {% endif -%}
+        ) {
+            {% if not rule.whitelisted | default(false, true) -%}
+            set req.http.X-RateLimit-Identity = req.http.User-Agent + "{{ rule.id }}";
+            set req.http.X-RateLimit-Remaining = vsthrottle.remaining(req.http.X-RateLimit-Identity, {{ rule.limit }}, {{ rule.duration }}, {{ rule.block | default('0s') }});
+
+            if (vsthrottle.is_denied(req.http.X-RateLimit-Identity, {{ rule.limit }}, {{ rule.duration }}, {{ rule.block | default('0s') }})) {
+                {% if rule.secret | default(false, true) %}
+                unset req.http.X-RateLimit-Identity;
+                unset req.http.X-RateLimit-Remaining;
+                {% endif %}
+                return (synth(429, "{{ rule.error_message | default('Too many requests') }}"));
+            }
+            {% if rule.secret | default(false, true) %}
+                unset req.http.X-RateLimit-Identity;
+                unset req.http.X-RateLimit-Remaining;
+            {% endif %}
+            {%- endif %}
+        {%- endif %}
         }
 {%- endmacro %}
 
