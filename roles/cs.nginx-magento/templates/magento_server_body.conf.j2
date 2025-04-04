@@ -150,7 +150,7 @@ location /static/ {
     }
     {% endif %}
 
-    location ~* \.(ico|jpg|jpeg|png|gif|svg|svgz|webp|avif|avifs|js|css|eot|ttf|otf|woff|woff2|html|json|webmanifest)$ {
+    location ~* \.(ico|jpg|jpeg|png|gif|svg|svgz|webp|avif|avifs|js|css|eot|ttf|otf|woff|woff2|html|json|webmanifest|swf)$ {
         if ($request_method = 'OPTIONS') {
             add_header 'Access-Control-Allow-Origin' '*';
             add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
@@ -209,7 +209,7 @@ location /media/ {
         deny all;
     }
 
-    location ~* \.(ico|jpg|jpeg|png|gif|svg|svgz|webp|avif|avifs|js|css|eot|ttf|otf|woff|woff2)$ {
+    location ~* \.(ico|jpg|jpeg|png|gif|svg|svgz|webp|avif|avifs|js|css|eot|ttf|otf|woff|woff2|swf|mp4)$ {
         add_header Cache-Control "public";
         add_header X-Frame-Options "SAMEORIGIN";
         expires {{ nginx_static_files_expires }};
@@ -249,7 +249,7 @@ location /errors/ {
 }
 
 # PHP entry point for main application
-location ~ ^/(index|get|static|errors/report|errors/404|errors/503|health_check)\.php$ {
+location ~ ^/(resize|index|get|static|errors/report|errors/404|errors/503|health_check)\.php$ {
     try_files $uri =404;
 
     if ($request_uri ~ ^/rest/.*$) {
