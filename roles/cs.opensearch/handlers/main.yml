@@ -2,7 +2,9 @@
   systemd:
     daemon_reload: yes
 
-- name: "Restart redis/valkey"
+- name: Restart opensearch
   service:
-    name: "{{ redis_daemon }}"
+    name: opensearch
     state: restarted
+
+

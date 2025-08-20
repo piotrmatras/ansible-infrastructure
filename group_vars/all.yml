@@ -561,9 +561,13 @@ aws_logs_slack_notifications: "{{ mageops_notifications_slack_enable }}"
 
 aws_logs_loggers_persistent_default:
   syslog: { enabled: yes }
-  elasticsearch-main: { enabled: "{{ mageops_elasticsearch_create }}" }
-  redis-server: { enabled: "{{ mageops_redis_create }}" }
+  elasticsearch-main: { enabled: "{{  mageops_elasticsearch_opensearch_flavor == 'elasticsearch' }}" }
+  opensearch-main: { enabled: "{{  mageops_elasticsearch_opensearch_flavor == 'opensearch' }}" }
+  redis-server: { enabled: "{{ redis_valkey_flavor == 'redis' }}" }
   redis-sessions-server: { enabled: "{{ mageops_redis_sessions_create }}" }
+  valkey-server: { enabled: "{{ redis_valkey_flavor == 'valkey' }}" }
+  valkey-sessions-server: { enabled: "{{ mageops_redis_sessions_create }}" }
+
 
 aws_logs_loggers_app_default:
   syslog: { enabled: yes }
@@ -661,9 +665,6 @@ mageops_app_id: "{{ mageops_project }}_{{ mageops_environment }}"
 # Shorter version guaranteed to be at most 16 chars long (e.g. suitable for MySQL 5.6 username)
 mageops_app_id_short: "{{ mageops_project | truncate(10, true, '') }}_{{ mageops_environment | truncate(5, true, '') }}"
 
-# Enables special features that work with MageSuite only
-mageops_app_is_magesuite: yes
-
 mageops_app_user: "{{ mageops_app_type }}"
 mageops_app_user_home: "/home/{{ mageops_app_user }}"
 php_opcache_user_home: "{{ mageops_app_user_home }}"
@@ -702,17 +703,19 @@ mageops_app_mysql_user: "{{ mageops_app_id_short }}"
 mageops_app_mysql_db: "{{ mageops_app_id_short }}"
 
 # Shall redis be installed/created automatically? (or provide host)
-mageops_redis_create: yes
 mageops_redis_host:
 mageops_redis_port: 6379
 
-mageops_redis_sessions_create: "{{ mageops_redis_create }}"
+mageops_redis_sessions_create: yes
 mageops_redis_sessions_host:
 mageops_redis_sessions_port: 6380
 
-# Enable to provision Elasticsearch (or provide host)
-mageops_elasticsearch_create: yes
+mageops_elasticsearch_opensearch_flavor: elasticsearch
 # mageops_elasticsearch_host:
+mageops_elasticsearch_http_auth: false
+
+# mageops_opensearch_host:
+mageops_opensearch_http_auth: "{{ mageops_elasticsearch_http_auth }}"
 
 # Do not wait for Elasticsearch to be ready, required when aws opensearch serverless is used
 # because it required complex authentication that isn't worth implementing
@@ -720,6 +723,9 @@ mageops_skip_elasticsearch_check: no
 
 # Use https for connecting to Elasticsearch
 mageops_elasticsearch_https: no
+
+# Use https for connecting to Elasticsearch
+mageops_opensearch_https: "{{ mageops_elasticsearch_https }}"
 
 mageops_varnish_purge_logging: yes
 mageops_varnish_host: 127.0.0.1
@@ -892,7 +898,7 @@ mageops_http_pipeline_request_timeout_list:
   - "{{ php_http_request_max_execution_time|int }}"
   - "{{ magento_api_request_php_max_execution_time|int }}"
   - "{{ magento_admin_request_php_max_execution_time|int }}"
-  - "{{ magento_cron_request_php_max_execution_time|int }}"
+
 
 # Use this variable to override all timeouts present across
 # the whole HTTP pipeline/stack. The common use-case is that
@@ -953,6 +959,8 @@ magento_gid: "{{ mageops_app_gid }}"
 magento_umask: "{{ mageops_app_umask }}"
 
 magento_elasticsearch_index_alias: "{{ mageops_app_name }}"
+magento_opensearch_index_alias: "{{ mageops_app_name }}"
+
 
 mageops_install_magerun: yes
 magento_consumer_workers_enable: yes
@@ -990,9 +998,6 @@ magento_scd_advanced_js_bundling_strategy: baler
 # --------------------------------
 # --------  Magento Cron  --------
 # --------------------------------
-
-magento_cron_user: "{{ mageops_app_id }}"
-# magento_cron_password:
 
 magento_cron_disabled: no
 magento_cron_http: "{{ not aws_use }}"
@@ -1201,11 +1206,6 @@ magento_api_request_php_max_execution_time: "{{ php_http_request_max_execution_t
 # Separate limits for admin URLs
 magento_admin_request_php_memory_limit: "{{ php_http_request_memory_limit }}"
 magento_admin_request_php_max_execution_time: 300
-
-# You can adjust the parameters for cron request
-# Warning - this does not affect separate cron processes
-magento_cron_request_php_memory_limit: "{{ php_http_request_memory_limit }}"
-magento_cron_request_php_max_execution_time: "{{ php_http_request_max_execution_time }}"
 
 # Directory where Magento CLI file opcache is stored
 magento_php_opcache_file_cache_dir: "{{ magento_user_home }}/{{ php_opcache_file_cache_user_dirname }}"
@@ -1514,7 +1514,6 @@ nginx_confd_dir: "{{ nginx_etc_dir }}/conf.d"
 nginx_error_log: "{{ nginx_log_dir }}/error.log warn"
 nginx_access_log: "{{ nginx_log_dir }}/access.log main buffer=16k"
 
-nginx_cron_htpasswd_file: "{{ nginx_etc_dir }}/htpasswd"
 nginx_site_htpasswd_file: "{{ nginx_etc_dir }}/sitepasswd"
 
 nginx_app_port: "{{ mageops_varnish_backend_port }}"
@@ -1578,12 +1577,24 @@ elasticsearch_plugins:
     - analysis-icu
     - analysis-phonetic
 
+# ---------------------------------
+# --------  Opensearch  --------
+# ---------------------------------
 
+opensearch_cluster_name: "{{ mageops_app_id }}"
+opensearch_node_name: master
+
+opensearch_http_port: "{{ elasticsearch_http_port }}"
+opensearch_transport_tcp_port: "{{ elasticsearch_transport_tcp_port }}"
+opensearch_heap_size: "{{ elasticsearch_heap_size }}"
+opensearch_plugins: "{{ elasticsearch_plugins }}"
 
 
 # -------------------------
 # --------  Redis  --------
 # -------------------------
+
+redis_valkey_flavor: redis
 
 redis_databases: 4
 
@@ -1793,8 +1804,8 @@ firewall_internal_services:
     - mysql
 
 firewall_internal_ports:
-    - "{{ elasticsearch_http_port }}/tcp"
-    - "{{ elasticsearch_transport_tcp_port }}/tcp"
+    - "{{ (mageops_elasticsearch_opensearch_flavor == 'elasticsearch') | ternary(elasticsearch_http_port ~ '/tcp', opensearch_http_port ~ '/tcp') }}"
+    - "{{ (mageops_elasticsearch_opensearch_flavor == 'elasticsearch') | ternary(elasticsearch_transport_tcp_port ~ '/tcp', opensearch_transport_tcp_port ~ '/tcp') }}"
     - "{{ mageops_redis_port }}/tcp"
 firewall_public_services:
     - http

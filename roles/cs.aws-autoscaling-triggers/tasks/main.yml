@@ -15,7 +15,8 @@
     loop_var: target
     label: "{{ target.arn }} -> {{ normalized_arn }}"
   vars:
-    normalized_arn: "{{ target.arn | regex_replace('^(.*lambda:.*:function:.*):[0-9]+$', '\\1') }}"
+    # When lambda is created ansible returns function arn containing $LATEST, while when it's already present it's returned without it
+    normalized_arn: "{{ target.arn | regex_replace('^(.*lambda:.*:function:.*):[0-9]+$', '\\1') | regex_replace(':\\$LATEST$', '') }}"
 
 - name: Setup autoscaling event trigger
   cloudwatchevent_rule:
@@ -30,9 +31,11 @@
   lambda_policy:
     state: present
     region: "{{ aws_region }}"
-    function_name: "{{ item }}"
+    function_name: "{{ function_name }}"
     action: "lambda:InvokeFunction"
     principal: "events.amazonaws.com"
     statement_id: "AWSEvents-handleAutoscalingEvent-{{ mageops_app_name }}"
     source_arn: "{{ aws_autoscaling_event.rule.arn }}"
   with_items: "{{ aws_autoscaling_lambda_functions_list }}"
+  loop_control:
+    loop_var: function_name
