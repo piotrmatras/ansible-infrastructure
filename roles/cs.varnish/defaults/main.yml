@@ -239,3 +239,4 @@ varnish_gzip_bypass_extensions:
 # Each url should start with `/`
 varnish_auth_bypass_urls: []
 varnish_custom_bypass: []
+gtm_enabled: false
