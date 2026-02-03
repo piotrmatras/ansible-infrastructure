@@ -146,6 +146,7 @@ magento_app_etc_config_cache_default_redis_l2:
   cache:
     frontend:
       default:
+        id_prefix: '061_'
         backend: \Magento\Framework\Cache\Backend\RemoteSynchronizedCache
         backend_options:
           remote_backend: "{{ magento_redis_cache_backend_fqcn }}"
@@ -156,16 +157,17 @@ magento_app_etc_config_cache_default_redis_l2:
             port: "{{ mageops_redis_port }}"
             password: ""
             preload_keys:
-            - EAV_ENTITY_TYPES:hash
-            - GLOBAL_PLUGIN_LIST:hash
-            - DB_IS_UP_TO_DATE:hash
-            - SYSTEM_DEFAULT:hash
+            - 061_EAV_ENTITY_TYPES:hash
+            - 061_GLOBAL_PLUGIN_LIST:hash
+            - 061_DB_IS_UP_TO_DATE:hash
+            - 061_SYSTEM_DEFAULT:hash
           local_backend: Cm_Cache_Backend_File
           local_backend_options:
             cache_dir: "{{ magento_redis_cache_l2_dir }}"
         frontend_options:
           write_control: false
       stale_cache_enabled:
+        id_prefix: '061_'
         backend: \Magento\Framework\Cache\Backend\RemoteSynchronizedCache
         backend_options:
           remote_backend: "{{ magento_redis_cache_backend_fqcn }}"
@@ -203,6 +205,7 @@ magento_app_etc_config_cache_page_redis:
   cache:
     frontend:
       page_cache:
+        id_prefix: '061_'
         backend: "{{ magento_redis_cache_backend_fqcn }}"
         backend_options:
           server: "{{ mageops_redis_host }}"
