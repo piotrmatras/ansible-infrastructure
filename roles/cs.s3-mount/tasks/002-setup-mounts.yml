@@ -48,7 +48,7 @@
     path: "{{ s3fs_bucket.mountpoint }}"
     src: "{{ s3fs_mount_fuse_binary }}#{{ s3fs_bucket.bucket }}"
     fstype: fuse
-    opts: "_netdev,allow_other,nonempty,auto,{{ s3fs_mount_opts | join(',') }}"
+    opts: "_netdev,allow_other,auto,{{ s3fs_mount_opts | join(',') }}"
     state: mounted
   loop: "{{ s3fs_buckets }}"
   loop_control:
