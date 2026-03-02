@@ -32,3 +32,35 @@ map {{ lang_source_var }} $target {
 {%- endfor %}
 }
 {% endif %}
+
+{% if nginx_language_redirect_cookie_enable | default(false, true) -%}
+{%- set cookie_max_age = nginx_language_redirect_cookie_max_age | default('', true) -%}
+{%- set cookie_domain = nginx_language_redirect_cookie_domain | default('', true) -%}
+{%- set cookie_attrs = "Path=/; Secure; SameSite=Lax" -%}
+{%- if cookie_domain %}
+{%- set cookie_attrs = cookie_attrs ~ "; Domain=" ~ cookie_domain -%}
+{%- endif %}
+{%- if cookie_max_age %}
+{%- set cookie_attrs = cookie_attrs ~ "; Max-Age=" ~ cookie_max_age -%}
+{%- endif %}
+# Cookie signal should be emitted only on auto-redirect from root.
+# We use maps (not "if") so add_header inheritance stays intact.
+# Conditions:
+# - request is "/" or "/?" (root)
+# - host differs from target (so a redirect will occur)
+map $request_uri $nginx_language_redirect_is_root {
+  ~^/(\?.*)?$ 1;
+  default 0;
+}
+
+# Domain-style safety: if host equals target, no redirect, so no cookie.
+map "$host:$target" $nginx_language_redirect_host_matches_target {
+  ~^([^:]+):\1$ 1;
+  default 0;
+}
+
+map "$nginx_language_redirect_is_root:$nginx_language_redirect_host_matches_target:$target" $nginx_language_redirect_cookie {
+  ~^1:0:.+$ "{{ nginx_language_redirect_cookie_name }}=1; {{ cookie_attrs }}";
+  default "";
+}
+{%- endif %}

@@ -45,6 +45,21 @@ nginx_language_redirect_directory_mapping:
   default: en
   PL: pl
 
+# Optional cookie signal for frontend when auto-redirect happens.
+# If enabled, a Set-Cookie header is sent only when request_uri is '/' (or '/?')
+# and language redirect chooses a target. This allows frontend
+# to display a geolocation dialog only for auto-redirected users.
+# NOTE: cookie name must use only alphanumeric characters and underscores.
+nginx_language_redirect_cookie_enable: no
+nginx_language_redirect_cookie_name: geo_redirect
+# Optional cookie domain attribute, e.g. ".example.com" to share across subdomains.
+# NOTE: This cannot span different TLDs (example.com -> example.pl).
+nginx_language_redirect_cookie_domain:
+# If set, Max-Age will be added in seconds. When empty or null, the cookie
+# becomes a session cookie (expires when the browser session ends).
+# Example: nginx_language_redirect_cookie_max_age: 300
+nginx_language_redirect_cookie_max_age:
+
 # configuration file paths
 nginx_language_redirect_conf_filename: "30-language-redirect.conf"
 nginx_language_redirect_geoip_module_conf_path: "{{ nginx_modules_conf_dir }}/geoip_module.conf"

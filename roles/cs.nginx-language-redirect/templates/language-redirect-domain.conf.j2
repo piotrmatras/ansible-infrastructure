@@ -5,6 +5,10 @@ if ($http_accept_language ~* '^(.+?),') {
 }
 {%- endif %}
 
+{%- if nginx_language_redirect_cookie_enable | default(false, true) %}
+add_header Set-Cookie $nginx_language_redirect_cookie;
+{% endif %}
+
 {% for lang, domain in nginx_language_redirect_domain_mapping.items() %}
   if ( $target_domain != "{{ domain }}" ) {
     {% if nginx_language_redirect_mode == 'geofence' %}
