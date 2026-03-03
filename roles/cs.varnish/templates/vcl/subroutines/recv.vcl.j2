@@ -31,7 +31,7 @@
     if (req.http.Host == "{{ mageops_gtm_domain }}" ) {
         set req.backend_hint = gtm_director.backend();
         return (pass);
-    } elseif (req.http.Host == "{{ mageops_gtm_preview_domain }}" ) {
+    } elsif (req.http.Host == "{{ mageops_gtm_preview_domain }}" ) {
         set req.backend_hint = gtm_preview_director.backend();
         return (pass);
     } else {
