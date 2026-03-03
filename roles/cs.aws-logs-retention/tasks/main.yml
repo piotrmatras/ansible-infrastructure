@@ -14,3 +14,6 @@
 - name: Set log retention for groups without retention
   shell: "aws logs put-retention-policy --log-group-name={{ item }} --retention-in-days=7 --region={{ aws_region }}"
   loop: "{{ aws_log_retention_groups.ansible_facts.data.groups }}"
+  ignore_errors: true
+  when: aws_log_retention_groups.ansible_facts.data.groups | length > 0
+
