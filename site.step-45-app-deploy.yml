@@ -120,6 +120,9 @@
         pio_tasks: app
       when: mageops_pio_worker_enable
 
+    - role: cs.gtm
+      when: gtm_enabled and varnish_standalone
+
   tasks:
     - name: Execute custom post deploy tasks
       include_tasks: "{{ mageops_extra_tasks_deploy }}"
