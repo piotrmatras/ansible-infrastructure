@@ -22,8 +22,9 @@ php_session_gc_maxlifetime: 10800
 php_max_input_time: 600
 php_max_input_vars: 2000
 
-php_realpath_cache_size: "4M"
-php_realpath_cache_ttl: "3600"
+# https://experienceleague.adobe.com/en/docs/commerce-operations/implementation-playbook/best-practices/planning/realpath-cache-size
+php_realpath_cache_size: "10M"
+php_realpath_cache_ttl: "7200"
 php_upload_max_filesize: "64M"
 php_post_max_size: "32M"
 php_session_name: PHPSESSID
