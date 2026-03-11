@@ -17,6 +17,10 @@
       ----------- Media storage strategy  ---------
       *** {{ magento_media_storage_strategy }} ***
       {% if magento_shared_storage_s3_enabled %}
+      --------------  S3 Backend  ----------------
+
+      {{ s3_mount_backend | default('s3fs') }}
+
       -----------------  S3 Mounts  ---------------
 
       {{ magento_s3_app_mounts | to_nice_yaml }}
@@ -50,7 +54,7 @@
     efs_name: "{{ magento_efs_app_node_name }}"
     efs_tags: "{{ aws_tags_default | combine(aws_tags_role_storage, aws_tags_role_shared_storage) }}"
     efs_mounts: "{{ magento_efs_app_mounts }}"
-    # This is a workaround for EFS mounts overlaying the crappy S3FS mounts
+    # This is a workaround for EFS mounts overlaying the S3-backed mounts.
     efs_mount_watchdog_cron_enable: "{{ magento_media_storage_strategy == 'aws-s3' }}"
 
 - name: Clean up shared Magento asset cache

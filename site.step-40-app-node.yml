@@ -133,10 +133,13 @@
       when: blackfire_install
 
     - role: cs.s3-fuse-s3fs
-      when: aws_use and not s3fs_mount_use_goofys | default(false)
+      when: aws_use and s3_mount_backend | default('s3fs') == 's3fs'
 
     - role: cs.s3-fuse-goofys
-      when: aws_use and s3fs_mount_use_goofys | default(false)
+      when: aws_use and s3_mount_backend | default('s3fs') == 'goofys'
+
+    - role: cs.s3-fuse-rclone
+      when: aws_use and s3_mount_backend | default('s3fs') == 'rclone'
 
     - role: pinkeen.postfix
 

@@ -3,8 +3,8 @@
 set -eu
 
 if [[ $# -ne 2 ]] ; then
-  echo -e "What:  MageOps Mount WatchDog"
-  echo -e "Why:   Detect and attempt to fix a crashed FUSE mount"
+  echo -e "What:  MageOps S3 Mount WatchDog"
+  echo -e "Why:   Detect and attempt to fix a crashed S3 mount"
   echo -e "How:   $0 fix|remount /path/to/mountpoint"
   exit 1
 fi
@@ -37,6 +37,51 @@ mount-watchdog::get_source() {
   findmnt --fstab --first-only --noheadings --output SOURCE "${MOUNTPOINT}"
 }
 
+mount-watchdog::get_fstype() {
+  findmnt --fstab --first-only --noheadings --output FSTYPE "${MOUNTPOINT}"
+}
+
+mount-watchdog::get_backend() {
+  local SOURCE
+  local FSTYPE
+
+  SOURCE="$(mount-watchdog::get_source)"
+  FSTYPE="$(mount-watchdog::get_fstype)"
+
+  if [[ "${SOURCE}" == s3fs#* ]] ; then
+    echo "s3fs"
+  elif [[ "${SOURCE}" == goofys#* ]] ; then
+    echo "goofys"
+  elif [[ "${FSTYPE}" == "rclone" ]] ; then
+    echo "rclone"
+  else
+    return 1
+  fi
+}
+
+mount-watchdog::get_kill_pattern() {
+  local BACKEND
+  local SOURCE
+  local SOURCE_PATTERN
+
+  BACKEND="$(mount-watchdog::get_backend)" || return 1
+  SOURCE="$(mount-watchdog::get_source)"
+
+  case "${BACKEND}" in
+    s3fs)
+      SOURCE_PATTERN="$(printf '%s' "${SOURCE}" | sed 's/#\+/.*/g')"
+      echo "s3fs.*${SOURCE_PATTERN}.*${MOUNTPOINT}"
+      ;;
+    goofys)
+      SOURCE_PATTERN="$(printf '%s' "${SOURCE}" | sed 's/#\+/.*/g')"
+      echo "goofys.*${SOURCE_PATTERN}.*${MOUNTPOINT}"
+      ;;
+    rclone)
+      echo "rclone.*${SOURCE}.*${MOUNTPOINT}"
+      ;;
+  esac
+}
+
 mount-watchdog::unmount() {
   ( mount-watchdog::log "INFO" "Attempting NORMAL unmount"  ;   umount    "${MOUNTPOINT}" ) || \
   ( mount-watchdog::log "INFO" "Attempting FORCED unmount"  ;   umount -f "${MOUNTPOINT}" ) || \
@@ -54,9 +99,14 @@ mount-watchdog::mount() {
 }
 
 mount-watchdog::kill() {
-  local PATTERN="$(mount-watchdog::get_source | sed 's/#\+/.*/g').*${MOUNTPOINT}"
-  
-  mount-watchdog::log "INFO" "Attempting to kill fuse processes matching '$PATTERN'"
+  local PATTERN
+
+  PATTERN="$(mount-watchdog::get_kill_pattern)" || {
+    mount-watchdog::log "WARNING" "Unable to determine backend kill pattern"
+    return 1
+  }
+
+  mount-watchdog::log "INFO" "Attempting to kill mount processes matching '$PATTERN'"
 
   if ! pkill -f "$PATTERN" --echo 2>/dev/null ; then
     mount-watchdog::log "NOTICE" "No process found to be killed"
@@ -89,7 +139,7 @@ mount-watchdog::fix() {
         mount-watchdog::log "WARNING" "Unmounting failed" >&2
 
         if mount-watchdog::kill ; then
-          mount-watchdog::log "NOTICE" "Attempting one more unmount after successfull kill" >&2
+          mount-watchdog::log "NOTICE" "Attempting one more unmount after successful kill" >&2
           mount-watchdog::unmount
         fi
       fi
@@ -107,7 +157,5 @@ if ! mount-watchdog::is_defined ; then
 fi
 
 "mount-watchdog::${SUBCOMMAND}"
-
-
 
 

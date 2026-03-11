@@ -1,6 +1,6 @@
 # What to use for storing Magento media that must be shared across nodes
 # Possible values:
-#   - aws-s3 (default if `aws_use`) - store on AWS S3 media bucket and mount it via s3fs
+#   - aws-s3 (default if `aws_use`) - store on AWS S3 media bucket and mount it via the selected S3 backend
 #   - aws-efs - store on AWS EFS and mount it as NFS share on the node
 #   - local-fs (default if not `aws_use`) - do nothing, just store the files on the local fs
 # Note: If you set this to `aws-efs` then the media S3 bucket will not be created, but
