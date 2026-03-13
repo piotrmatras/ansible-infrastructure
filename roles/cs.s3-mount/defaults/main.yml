@@ -1,12 +1,32 @@
-s3fs_mount_use_goofys: false
+s3_mount_backend: s3fs
+s3_mount_backends_all:
+  - s3fs
+  - goofys
+  - rclone
 
-s3fs_mount_fstype: "{{ s3fs_mount_use_goofys | ternary('fuse', 'fuse.s3fs') }}"
-s3fs_mount_fuse_binary: "{{ s3fs_mount_use_goofys | ternary('goofys', 's3fs') }}"
+# These are the helper fstypes written to fstab.
+s3_mount_fstype_map:
+  s3fs: fuse
+  goofys: fuse
+  rclone: rclone
+
+s3_mount_binary_map:
+  s3fs: s3fs
+  goofys: goofys
+  rclone: rclone
+
+s3_mount_uses_cache_map:
+  s3fs: true
+  goofys: false
+  rclone: true
 
 s3fs_cache_dir: /tmp/s3
 s3fs_use_cache: yes
 
 s3fs_ensure_diskfree_mb: 1024
+
+s3_mount_rclone_remote_name: mageops-s3
+s3_mount_rclone_config_path: /etc/rclone.conf
 
 s3fs_options_s3fs:
     - "ahbe_conf=/etc/s3fs/ahbe.conf"
@@ -27,6 +47,16 @@ s3fs_options_goofys:
     - "--uid={{ s3fs_owner_uid }}"
     - "--gid={{ s3fs_owner_gid }}"
 
-s3fs_mount_opts: "{{ s3fs_mount_use_goofys | ternary(s3fs_options_goofys, s3fs_options_s3fs) }}"
+s3_mount_options_rclone:
+    - "args2env"
+    - "config={{ s3_mount_rclone_config_path }}"
+    - "uid={{ s3fs_owner_uid }}"
+    - "gid={{ s3fs_owner_gid }}"
+    - "umask=0002"
+
+s3_mount_options_map:
+  s3fs: "{{ s3fs_options_s3fs }}"
+  goofys: "{{ s3fs_options_goofys }}"
+  rclone: "{{ s3_mount_options_rclone }}"
 
 s3fs_premount_bind_mounts: []

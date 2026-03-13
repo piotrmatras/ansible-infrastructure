@@ -1245,6 +1245,11 @@ magento_media_storage_strategy: "{{ aws_use | ternary('aws-s3', 'local-fs') }}"
 # Any extra buckets you want for you app
 magento_s3fs_buckets_extra: []
 
+# Which S3 mount backend should be used when `magento_media_storage_strategy`
+# or extra mounts require S3-backed storage.
+# Possible values: s3fs, goofys, rclone
+s3_mount_backend: s3fs
+
 # -------------------------------------------------------------
 # --------  Magento Import/Export AWS EFS file shares  --------
 # -------------------------------------------------------------
