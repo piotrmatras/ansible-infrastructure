@@ -1480,7 +1480,7 @@ php_cli_opcache_file_cache_enable: no
 php_fpm_pm_type: static
 php_fpm_pm_max_children: ""
 php_fpm_pm_max_requests: 100
-
+php_fpm_slowlog_trace_depth: 30
 # -----------------------------
 # --------  Blackfire  --------
 # -----------------------------
