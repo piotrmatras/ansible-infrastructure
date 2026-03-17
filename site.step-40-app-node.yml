@@ -110,7 +110,6 @@
       php_fpm_pool_user: "{{ magento_user }}"
       php_fpm_pool_group: "{{ magento_group }}"
       php_fpm_terminate_timeout: "{{ mageops_http_pipeline_request_timeout_override }}"
-      php_fpm_slowlog_trace_depth: "{{ mageops_php_fpm_slowlog_trace_depth }}"
 
     - role: cs.php-tideways
 
