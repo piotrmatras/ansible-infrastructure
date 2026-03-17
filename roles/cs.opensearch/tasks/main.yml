@@ -39,6 +39,25 @@
   command: systemd-tmpfiles --create
   when: tmpfiles_config is changed
 
+- name: Detect installed opensearch version
+  shell: |
+    find /usr/share/opensearch/lib/ -type f -regex '.*/opensearch-[0-9]+\..*\.jar' -printf '%P' | sed -E 's/opensearch-(([0-9]+\.)+[0-9]+).*.jar/\1/'
+  register: opensearch_get_installed_version
+  failed_when: >-
+    opensearch_get_installed_version.rc | default(0, true) | int != 0
+      or opensearch_get_installed_version.stdout_lines | default([], true) | length == 0
+  changed_when: false
+
+- name: Detect running opensearch version
+  uri:
+    url: "http://{{ opensearch_network_host }}:{{ opensearch_http_port }}"
+    return_content: yes
+    url_password: "{{ mageops_opensearch_password | default(omit) }}"
+    url_username: "{{ mageops_opensearch_username | default(omit) }}"
+  register: opensearch_get_running_version
+  failed_when: false
+  changed_when: false
+
 - name: Configure opensearch
   template:
     src: "{{ item.key }}"
@@ -86,15 +105,11 @@
 
 - name: Force update of opensearch plugins on version change
   block:
-    - name: Get list of installed opensearch plugins
-      command: /usr/share/opensearch/bin/opensearch-plugin list --silent
-      register: opensearch_plugin_list_command
-
     - name: Remove current opensearch plugins so new version is installed
       command: "/usr/share/opensearch/bin/opensearch-plugin remove {{ item }} --verbose"
       args:
         removes: "/usr/share/opensearch/plugins/{{ item }}"
-      loop: "{{ opensearch_plugin_list_command.stdout_lines }}"
+      loop: "{{ opensearch_plugins }}"
   when: >-
     opensearch_version_number != opensearch_running_version_number
 
@@ -127,4 +142,3 @@
     port: "{{ opensearch_http_port }}"
     delay: 6
     timeout: 60
-
