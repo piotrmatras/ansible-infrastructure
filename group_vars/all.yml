@@ -1245,6 +1245,11 @@ magento_media_storage_strategy: "{{ aws_use | ternary('aws-s3', 'local-fs') }}"
 # Any extra buckets you want for you app
 magento_s3fs_buckets_extra: []
 
+# Which S3 mount backend should be used when `magento_media_storage_strategy`
+# or extra mounts require S3-backed storage.
+# Possible values: s3fs, goofys, rclone
+s3_mount_backend: s3fs
+
 # -------------------------------------------------------------
 # --------  Magento Import/Export AWS EFS file shares  --------
 # -------------------------------------------------------------
@@ -1425,8 +1430,8 @@ php_xdebug_remote_port: 9000
 php_max_execution_time: "600"
 php_max_input_time: "600"
 php_max_input_vars: "2000"
-php_realpath_cache_size: "4M"
-php_realpath_cache_ttl: "3600"
+php_realpath_cache_size: "10M"
+php_realpath_cache_ttl: "7200"
 php_upload_max_filesize: "64M"
 php_post_max_size: "32M"
 php_session_name: "PHPSESSID"
@@ -1475,7 +1480,7 @@ php_cli_opcache_file_cache_enable: no
 php_fpm_pm_type: static
 php_fpm_pm_max_children: ""
 php_fpm_pm_max_requests: 100
-
+php_fpm_slowlog_trace_depth: 30
 # -----------------------------
 # --------  Blackfire  --------
 # -----------------------------
@@ -2152,3 +2157,8 @@ aws_pio_ebs_volume_size: "{{ aws_app_node_ebs_volume_size }}"
 new_relic_app_name: "{{ mageops_app_name }}"
 mageops_new_relic_enabled: no
 # new_relic_license need to be set up
+
+# ---------------------
+# ----- Google Tag Manger -----
+# ---------------------
+gtm_enabled: no

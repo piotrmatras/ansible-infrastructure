@@ -75,9 +75,14 @@ magento_app_etc_config:
     vertex: 1
     elasticsuite: 1
     graphql_query_resolver_result: 1
+    search_ajax_suggest: 1
 
   install:
     date: "Tue, 11 Nov 2016 11:11:00 +0000"
+
+magento_app_etc_config_lazy_resize:
+  lazy_resize:
+    secret : "{{ lazy_resize_secret }}"
 
 magento_mysql_ssl_required:
   db:

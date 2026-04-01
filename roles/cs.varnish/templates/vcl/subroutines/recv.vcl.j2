@@ -27,30 +27,43 @@
 
 {% if varnish_standalone %}
     {# This has to be first line, remember this is not declarative config, we always need the director! #}
-    set req.backend_hint = app_director.backend();
-
-    if (req.http.X-Use-Extra-Instance
-        {% if aws_extra_app_asg_passthrough_uagent_pattern %}
-            || req.http.User-Agent ~ "{{ aws_extra_app_asg_passthrough_uagent_pattern }}"
-        {% endif %}
-        {% if aws_extra_app_asg_passthrough_url_pattern %}
-            || req.url ~ "{{ aws_extra_app_asg_passthrough_url_pattern }}"
-        {% endif %}
-        {% if aws_extra_app_asg_passthrough_ip_pattern %}
-            || req.http.x-forwarded-for ~ "{{ aws_extra_app_asg_passthrough_ip_pattern }}"
-        {% endif %}
-    ) {
-        set req.backend_hint = extra_director.backend();
-
-        {% if varnish_extra_instance_failover_enable %}
-        if (!std.healthy(req.backend_hint)) {
-            set req.backend_hint = app_director.backend();
-        }
-        {% else %}
-        # Extra instance failover is disabled - requests will return 5xx
-        # in case all of the the extra instances are not healthy.
-        {% endif %}
+    {% if (gtm_enabled | default(false)) %}
+    if (req.http.Host == "{{ mageops_gtm_domain }}" ) {
+        set req.backend_hint = gtm_director.backend();
+        return (pass);
+    } elsif (req.http.Host == "{{ mageops_gtm_preview_domain }}" ) {
+        set req.backend_hint = gtm_preview_director.backend();
+        return (pass);
+    } else {
+        set req.backend_hint = app_director.backend();
     }
+    {% else %}
+    set req.backend_hint = app_director.backend();
+    {% endif %}
+
+if (req.http.X-Use-Extra-Instance
+{% if aws_extra_app_asg_passthrough_uagent_pattern %}
+    || req.http.User-Agent ~ "{{ aws_extra_app_asg_passthrough_uagent_pattern }}"
+{% endif %}
+{% if aws_extra_app_asg_passthrough_url_pattern %}
+    || req.url ~ "{{ aws_extra_app_asg_passthrough_url_pattern }}"
+{% endif %}
+{% if aws_extra_app_asg_passthrough_ip_pattern %}
+    || req.http.x-forwarded-for ~ "{{ aws_extra_app_asg_passthrough_ip_pattern }}"
+{% endif %}
+) {
+    set req.backend_hint = extra_director.backend();
+
+{% if varnish_extra_instance_failover_enable %}
+    if (!std.healthy(req.backend_hint)) {
+        set req.backend_hint = app_director.backend();
+    }
+{% else %}
+    # Extra instance failover is disabled - requests will return 5xx
+    # in case all of the the extra instances are not healthy.
+{% endif %}
+
+}
 {% endif %}
 
 {% if varnish_vcl_recv_extra %}
@@ -179,8 +192,8 @@ if (req.http.X-Blackfire-Query) {
     }
 }
 
-# Bypass customer, shopping cart, checkout and search requests
-if (req.url ~ "/customer" || req.url ~ "/checkout" || req.url ~ "/catalogsearch") {
+# Bypass customer, shopping cart, checkout
+if (req.url ~ "/customer" || req.url ~ "/checkout") {
     return (pass);
 }
 

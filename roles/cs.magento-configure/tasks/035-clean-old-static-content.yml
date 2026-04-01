@@ -1,7 +1,7 @@
 ### 
 # Magento does it anyway during setup:upgrade, but lets make sure anyway.
 # - Use `rm` because ansible cannot easily delete only contents in a
-#   performant way, especially that this might be an s3fs mount.
+#   performant way, especially that this might be an S3-backed mount.
 # - Caution: This will not remove dotfiles, but we don't care.
 ###
 - name: Make sure previous Mangeto static cache files are gone
