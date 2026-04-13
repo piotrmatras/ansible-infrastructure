@@ -18,27 +18,55 @@
     region: "{{ aws_region }}"
   when: _lambda_facts.ansible_facts.lambda_facts.function[aws_lambda_handle_varnish_autoscaling_event_name] is defined and _lambda_facts.ansible_facts.lambda_facts.function[aws_lambda_handle_varnish_autoscaling_event_name].runtime != aws_lambda_varnish_runtime
 
+# Why these workarounds exist:
+# `amazon.aws.lambda` update path calls botocore waiter `FunctionActive` before applying updates.
+# In our case AWS reports some idle VPC lambdas as `State=Inactive` (`StateReasonCode=Idle`).
+# That waiter does not handle `Inactive` as a valid transition state, so it keeps polling until:
+# "Waiter FunctionActive failed: Max attempts exceeded".
+# Deleting and recreating the function forces create path (no failing pre-update waiter), which unblocks deploy.
+
+
 - name: Register lambda handler for autoscaling event
-  lambda:
-    name: "{{ aws_lambda_handle_varnish_autoscaling_event_name }}"
-    state: present
-    zip_file: "{{ aws_lambda_varnish_deploy_package_path }}"
-    runtime: "{{ aws_lambda_varnish_runtime }}"
-    role: "arn:aws:iam::{{ aws_account_id }}:role/{{ aws_iam_role_autoscaling_event_lambda }}"
-    handler: handle_autoscaling_event.handle
-    region: "{{ aws_region }}"
-    timeout: 120
-    environment_variables:
-        VARNISH_INSTANCE_FILTER: "{{ varnish_instances_filter_lambda | to_json }}"
-        BACKEND_INSTANCE_FILTER: "{{ varnish_backend_instances_filter_lambda | to_json }}"
-        EXTRA_INSTANCE_FILTER: "{{ varnish_extra_instances_filter_lambda | to_json }}"
-        KEY_BUCKET: "{{ aws_lambda_update_varnish_vcl_function_s3_bucket_name }}"
-        KEY_NAME: "{{ aws_lambda_update_varnish_vcl_function_ssh_key_name }}"
-        SSH_USERNAME: "{{ varnish_manager_user }}"
-        ASG_PREFIX: "{{ mageops_app_name }}"
-        TERMINATE_HOOK: "{{ aws_app_node_webnodedown_hook_name }}"
-        UPDATE_LAMBDA_NAME: "{{ aws_lambda_update_varnish_backends_name }}"
-  register: handle_autoscaling_event_lambda
+  block:
+    - name: Register lambda handler for autoscaling event
+      lambda: &handle_varnish_autoscaling_event_lambda_args
+        name: "{{ aws_lambda_handle_varnish_autoscaling_event_name }}"
+        state: present
+        zip_file: "{{ aws_lambda_varnish_deploy_package_path }}"
+        runtime: "{{ aws_lambda_varnish_runtime }}"
+        role: "arn:aws:iam::{{ aws_account_id }}:role/{{ aws_iam_role_autoscaling_event_lambda }}"
+        handler: handle_autoscaling_event.handle
+        region: "{{ aws_region }}"
+        timeout: 120
+        environment_variables:
+            VARNISH_INSTANCE_FILTER: "{{ varnish_instances_filter_lambda | to_json }}"
+            BACKEND_INSTANCE_FILTER: "{{ varnish_backend_instances_filter_lambda | to_json }}"
+            EXTRA_INSTANCE_FILTER: "{{ varnish_extra_instances_filter_lambda | to_json }}"
+            KEY_BUCKET: "{{ aws_lambda_update_varnish_vcl_function_s3_bucket_name }}"
+            KEY_NAME: "{{ aws_lambda_update_varnish_vcl_function_ssh_key_name }}"
+            SSH_USERNAME: "{{ varnish_manager_user }}"
+            ASG_PREFIX: "{{ mageops_app_name }}"
+            TERMINATE_HOOK: "{{ aws_app_node_webnodedown_hook_name }}"
+            UPDATE_LAMBDA_NAME: "{{ aws_lambda_update_varnish_backends_name }}"
+      register: handle_autoscaling_event_lambda
+      until: handle_autoscaling_event_lambda is not failed
+      retries: 3
+      delay: 30
+  rescue:
+    - name: Recreate lambda handler for autoscaling event after deployment error
+      block:
+        - name: Delete lambda function before recreation
+          lambda:
+            name: "{{ aws_lambda_handle_varnish_autoscaling_event_name }}"
+            state: absent
+            region: "{{ aws_region }}"
+
+        - name: Recreate lambda handler for autoscaling event
+          lambda: *handle_varnish_autoscaling_event_lambda_args
+          register: handle_autoscaling_event_lambda
+          until: handle_autoscaling_event_lambda is not failed
+          retries: 3
+          delay: 30
 
 - name: Register autoscaling trigger
   set_fact:
