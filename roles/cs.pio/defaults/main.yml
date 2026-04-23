@@ -15,6 +15,8 @@ pio_media_target_ssim: 0.000548 # this is 99 quality
 # This quality will be used when performing fast and dirty temporary optimization
 # 85-95 should be ok
 pio_media_fast_quality: 95
+pio_quality_target_spread: 100
+pio_media_quality_spread: 100
 pio_target_directory: pio_cache
 pio_media_target_directory: pio_cache_cms
 pio_optimize_media: yes
