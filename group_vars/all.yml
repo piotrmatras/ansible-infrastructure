@@ -1902,6 +1902,10 @@ rabbitmq_amqp_port: 5672
 # Whether to enable Management UI
 rabbitmq_enable_management: yes
 
+# RabbitMQ release series to install and keep updated within
+rabbitmq_release: "4.2"
+rabbitmq_versionlock_package: "{{ rabbitmq_release | default(false, true) | ternary('rabbitmq-server-' ~ rabbitmq_release ~ '.*', []) }}"
+
 # This port will provide an HTTP API and management UI
 # - might be useful for debugging and will be accessible from `mageops_trusted_cidr_blocks`
 rabbitmq_http_port: 15672
@@ -2045,9 +2049,10 @@ packages_remove: "{{ mageops_packages_banned }}"
 
 # Package locks, for more info, check cs.versionlock role
 
-mageops_elasticsearch_version_full: "elasticsearch-{{mageops_elasticsearch_version}}.*"
+mageops_elasticsearch_version_full: "elasticsearch-{{ mageops_elasticsearch_version }}.*"
 versionlock_persistent_packages_base_tpl: [
-  "{{ mageops_elasticsearch_version | ternary( mageops_elasticsearch_version_full, [] ) }}"
+  "{{ mageops_elasticsearch_version | ternary(mageops_elasticsearch_version_full, []) }}",
+  "{{ mageops_rabbitmq_create | ternary(rabbitmq_versionlock_package, []) }}"
 ]
 
 # Package locks per instance
