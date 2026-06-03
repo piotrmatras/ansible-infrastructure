@@ -19,19 +19,42 @@
     region: "{{ aws_region }}"
   when: _lambda_facts.ansible_facts.lambda_facts.function[aws_lambda_update_varnish_backends_name] is defined and _lambda_facts.ansible_facts.lambda_facts.function[aws_lambda_update_varnish_backends_name].runtime != aws_lambda_varnish_runtime
 
+
+# Why these workarounds exist:
+# `amazon.aws.lambda` update path calls botocore waiter `FunctionActive` before applying updates.
+# In our case AWS reports some idle VPC lambdas as `State=Inactive` (`StateReasonCode=Idle`).
+# That waiter does not handle `Inactive` as a valid transition state, so it keeps polling until:
+# "Waiter FunctionActive failed: Max attempts exceeded".
+# Deleting and recreating the function forces create path (no failing pre-update waiter), which unblocks deploy.
+
 - name: Register lambda handler for updating varnish backends
-  lambda:
-    name: "{{ aws_lambda_update_varnish_backends_name }}"
-    state: present
-    zip_file: "{{ aws_lambda_varnish_deploy_package_path }}"
-    runtime: "{{ aws_lambda_varnish_runtime }}"
-    role: "arn:aws:iam::{{ aws_account_id }}:role/{{ aws_iam_role_update_varnish_backend_lambda_execution }}"
-    handler: update_varnish_backends.handle
-    region: "{{ aws_region }}"
-    timeout: 120
-    vpc_security_group_ids:
-      - "{{ aws_security_group_lambda_ssh_id }}"
-    vpc_subnet_ids: "{{ aws_vpc_subnet_ids }}"
-    environment_variables:
-      BACKEND_TEMPLATE: "{{ lookup('file', 'roles/cs.varnish/templates/vcl/backends.vcl.j2')|to_json }}"
-      BACKEND_TEMPLATE_VARS: "{{ varnish_backend_template_vars | to_json }}"
+  block:
+    - name: Register lambda handler for updating varnish backends
+      lambda: &update_varnish_backends_lambda_args
+        name: "{{ aws_lambda_update_varnish_backends_name }}"
+        state: present
+        zip_file: "{{ aws_lambda_varnish_deploy_package_path }}"
+        runtime: "{{ aws_lambda_varnish_runtime }}"
+        role: "arn:aws:iam::{{ aws_account_id }}:role/{{ aws_iam_role_update_varnish_backend_lambda_execution }}"
+        handler: update_varnish_backends.handle
+        region: "{{ aws_region }}"
+        timeout: 120
+        vpc_security_group_ids:
+          - "{{ aws_security_group_lambda_ssh_id }}"
+        vpc_subnet_ids: "{{ aws_vpc_subnet_ids }}"
+        environment_variables:
+          BACKEND_TEMPLATE: "{{ lookup('file', 'roles/cs.varnish/templates/vcl/backends.vcl.j2')|to_json }}"
+          BACKEND_TEMPLATE_VARS: "{{ varnish_backend_template_vars | to_json }}"
+      register: update_varnish_backends_lambda
+  rescue:
+    - name: Recreate lambda handler for updating varnish backends after deployment error
+      block:
+        - name: Delete lambda function before recreation
+          lambda:
+            name: "{{ aws_lambda_update_varnish_backends_name }}"
+            state: absent
+            region: "{{ aws_region }}"
+
+        - name: Recreate lambda handler for updating varnish backends
+          lambda: *update_varnish_backends_lambda_args
+          register: update_varnish_backends_lambda

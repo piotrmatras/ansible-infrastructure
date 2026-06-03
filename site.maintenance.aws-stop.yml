@@ -53,12 +53,31 @@
         - "{{ aws_autoscaling_app }}"
         - "{{ aws_autoscaling_app_extra }}"
 
-    - name: Stop RDS instance
+    - name: Stop Aurora RDS cluster
+      ansible.builtin.command:
+        argv:
+          - aws
+          - rds
+          - stop-db-cluster
+          - --db-cluster-identifier
+          - "{{ aws_rds_cluster.db_cluster_identifier }}"
+          - --region
+          - "{{ aws_region }}"
+      changed_when: true
+      when:
+        - stop_rds
+        - aws_rds_cluster is defined
+        - aws_rds_cluster.status == "available"
+
+    - name: Stop standalone RDS instance
       rds_instance:
         state: stopped
         region: "{{ aws_region }}"
         db_instance_identifier: "{{ aws_rds_instance.db_instance_identifier }}"
-      when: stop_rds and aws_rds_instance is defined
+      when:
+        - stop_rds
+        - aws_rds_instance is defined
+        - aws_rds_instance.db_cluster_identifier is not defined or not aws_rds_instance.db_cluster_identifier
 
   vars:
     stop: yes

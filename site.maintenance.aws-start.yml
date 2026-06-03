@@ -72,12 +72,31 @@
           vars:
             start_asgs: "{{ start_asg_facts | json_query('results[].{ name: auto_scaling_group_name } ') }}"
 
-    - name: Start RDS instance
+    - name: Start Aurora RDS cluster
+      ansible.builtin.command:
+        argv:
+          - aws
+          - rds
+          - start-db-cluster
+          - --db-cluster-identifier
+          - "{{ aws_rds_cluster.db_cluster_identifier }}"
+          - --region
+          - "{{ aws_region }}"
+      changed_when: true
+      when:
+        - start_rds
+        - aws_rds_cluster is defined
+        - aws_rds_cluster.status == "stopped"
+
+    - name: Start standalone RDS instance
       rds_instance:
         state: started
         region: "{{ aws_region }}"
         db_instance_identifier: "{{ aws_rds_instance.db_instance_identifier }}"
-      when: start_rds and aws_rds_instance is defined
+      when:
+        - start_rds
+        - aws_rds_instance is defined
+        - aws_rds_instance.db_cluster_identifier is not defined or not aws_rds_instance.db_cluster_identifier
 
   vars:
     start: yes
