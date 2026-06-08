@@ -27,7 +27,9 @@
     alias: "{{ aws_rds_encryption_key_name }}"
     region: "{{ aws_region }}"
     tags: "{{ aws_tags_default | combine(aws_tags_kms_database) }}"
-  when: aws_rds_storage_encrypt and aws_rds_dedicated_encryption_key
+  when:
+    - aws_rds_storage_encrypt | bool
+    - aws_rds_dedicated_encryption_key | bool
 
 - name: Wait for active rds modifications to finish
   amazon.aws.rds_instance_info:

@@ -12,7 +12,9 @@
       dnf:
         name: "{{ packages_remove | default([]) }}"
         state: absent
-      when: packages_remove is defined and packages_remove | length
+      when:
+        - packages_remove is defined
+        - (packages_remove | length) > 0
 
     - name: Store information that package maintenance was done
       copy:
