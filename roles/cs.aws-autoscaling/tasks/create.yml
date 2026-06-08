@@ -21,7 +21,7 @@
     aws_ec2_user_launch_script: "{{ autoscaling_instance_start_script }}"
 
 - name: Create AutoScaling Group
-  ec2_asg:
+  amazon.aws.autoscaling_group:
     state: present
     name: "{{ autoscaling_asg_name }}"
     region: "{{ aws_region }}"
