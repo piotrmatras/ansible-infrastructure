@@ -38,8 +38,6 @@
         {% if item.user is defined %}--user {{ item.user }}{% endif %}
         {{ item.image | mandatory }}
         {{ item.commandline | default('') }}
-      args:
-        warn: no
       ignore_errors: "{{ item.ignore_error | bool }}"
       register: containerized_tasks_result
       loop: "{{ containerized_tasks }}"

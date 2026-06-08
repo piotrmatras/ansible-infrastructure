@@ -2,8 +2,6 @@
 
 - name: Wait for Elasticsearch
   shell: curl -u {{ mageops_elasticsearch_username | default('elastic')}}:{{mageops_elasticsearch_password | default('changeme')}} -sfk 'http://{{ mageops_elasticsearch_host }}:{{ elasticsearch_http_port }}'
-  args:
-    warn: no
   retries: 15
   delay: 5
   register: result
@@ -15,8 +13,6 @@
 
 - name: Wait for Opensearch
   shell: curl -u {{ mageops_opensearch_username | default('elastic')}}:{{mageops_elasticsearch_password | default('changeme')}} -sfk 'http://{{ mageops_opensearch_host }}:{{ opensearch_http_port }}'
-  args:
-    warn: no
   retries: 15
   delay: 5
   register: result
