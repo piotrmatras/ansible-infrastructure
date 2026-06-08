@@ -84,10 +84,10 @@
           when: _aws_rds_instances | length > 0
         - name: Terminate RDS instance
           when: _aws_rds_instance_id == aws_rds_instance_name and not dry_run_mode
-          rds:
-            command: delete
-            instance_name: "{{ aws_rds_instance_name }}"
-            # snapshot: "{{ aws_rds_instance_name }}-snapshot"
+          amazon.aws.rds_instance:
+            db_instance_identifier: "{{ aws_rds_instance_name }}"
+            state: absent
+            skip_final_snapshot: true
       when: remove_rds
 
     - name: Remove Volumes
@@ -95,7 +95,7 @@
       # We do not set tags for volumes
       block:
         - name: Get list of Volumes
-          ec2_vol_facts:
+          amazon.aws.ec2_vol_info:
             region: "{{ aws_region }}"
             filters:
               "status": "available"
@@ -108,13 +108,13 @@
     - name: Remove EFS
       block:
         - name: Get list of EFS drives
-          efs_facts:
+          community.aws.efs_info:
             region: "{{ aws_region }}"
             tags: "{{ aws_tags_base }}"
           register: _aws_fact
         - name: Set list of EFS instances to drop
           set_fact:
-            _aws_efs_to_remove: "{{ _aws_fact | json_query('ansible_facts.efs[].file_system_id')}}"
+            _aws_efs_to_remove: "{{ _aws_fact | json_query('efs[].file_system_id')}}"
         - name: Remove EFS
           efs:
             id: "{{ item }}"
