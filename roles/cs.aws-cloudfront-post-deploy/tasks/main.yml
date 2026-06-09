@@ -6,7 +6,7 @@
 - name: Invalidate cloudfront magento static assets
   cloudfront_invalidation:
     distribution_id: "{{ aws_cloudfront_distribution_id }}"
-    caller_reference: "deploy-{{ ansible_date_time.iso8601_basic_short }}"
+    caller_reference: "deploy-{{ ansible_facts.date_time.iso8601_basic_short }}"
     target_paths:
         - '/static/*'
   when: aws_cloudfront_distribution_id is defined and aws_cloudfront_distribution_id != ''

@@ -33,7 +33,7 @@
     - name: Execute containerized tasks
       command: >
         docker run
-        {% if item.name is defined %}--name {{ item.name }}-{{ ansible_date_time.iso8601_basic_short }}{% endif %}
+        {% if item.name is defined %}--name {{ item.name }}-{{ ansible_facts.date_time.iso8601_basic_short }}{% endif %}
         --volume {{ item.workdir }}:{{ item.container_workdir | default(containerized_tasks_container_workdir_default) }}:rw
         {% if item.user is defined %}--user {{ item.user }}{% endif %}
         {{ item.image | mandatory }}

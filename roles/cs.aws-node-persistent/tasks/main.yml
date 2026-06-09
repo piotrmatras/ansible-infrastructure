@@ -36,19 +36,19 @@
     wait_timeout: 1500
     # This has zero costs on current-gen instances
     ebs_optimized: yes
-    network:
-      assign_public_ip: yes
-    security_groups: >-
-      {{
-          aws_persistent_node_security_groups
-          + aws_security_group_redis_id | default(false, true) | ternary([aws_security_group_redis_id], [])
-          + aws_security_group_persistant_id | default(false, true) | ternary([aws_security_group_persistant_id], [])
-          + aws_security_group_elasticsearch_id | default(false, true) | ternary([aws_security_group_elasticsearch_id], [])
-          + varnish_is_in_autoscaling_group | ternary(
-              aws_security_group_varnish_id | default(false, true) | ternary([aws_security_group_varnish_id], []),
-              []
-          )
-      }}
+    network_interfaces:
+      - assign_public_ip: yes
+        groups: >-
+          {{
+              aws_persistent_node_security_groups
+              + aws_security_group_redis_id | default(false, true) | ternary([aws_security_group_redis_id], [])
+              + aws_security_group_persistant_id | default(false, true) | ternary([aws_security_group_persistant_id], [])
+              + aws_security_group_elasticsearch_id | default(false, true) | ternary([aws_security_group_elasticsearch_id], [])
+              + varnish_is_in_autoscaling_group | ternary(
+                  aws_security_group_varnish_id | default(false, true) | ternary([aws_security_group_varnish_id], []),
+                  []
+              )
+          }}
   vars:
     aws_ec2_user_launch_script: "{{ aws_persistent_node_launch_script_extra }}"
     aws_persistent_node_name_tags:

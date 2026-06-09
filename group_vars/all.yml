@@ -1523,7 +1523,7 @@ nginx_version: "1.10.3"
 nginx_user: "nginx"
 nginx_group: "nginx"
 
-nginx_worker_processes: "{{ ansible_processor_vcpus|default(ansible_processor_count + 1) }}"
+nginx_worker_processes: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count + 1) }}"
 nginx_worker_connections: "1024"
 
 nginx_multi_accept: "off"
@@ -1594,7 +1594,7 @@ elasticsearch_node_name: master
 
 elasticsearch_http_port: 9200
 elasticsearch_transport_tcp_port: 9300
-elasticsearch_heap_size: "{{ ((ansible_memtotal_mb / 2) | int ) ~ 'm' }}"
+elasticsearch_heap_size: "{{ ((ansible_facts.memtotal_mb / 2) | int ) ~ 'm' }}"
 elasticsearch_plugins:
     - analysis-icu
     - analysis-phonetic

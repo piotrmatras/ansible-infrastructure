@@ -9,8 +9,8 @@
 
       ---
 
-      Total target system vCPUs: {{ ansible_processor_vcpus }}
-      Total target system memory: {{ ( ansible_memtotal_mb ~ 'MB' ) | human_to_bytes | human_readable }}
+      Total target system vCPUs: {{ ansible_facts.processor_vcpus }}
+      Total target system memory: {{ ( ansible_facts.memtotal_mb ~ 'MB' ) | human_to_bytes | human_readable }}
 
       ---
 
