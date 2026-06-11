@@ -1,3 +1,20 @@
+- name: Prepare static content deployment options
+  set_fact:
+    _magento_scd_deploy_options: >-
+      {{
+        []
+        + (magento_scd_no_javascript | bool | ternary(['--no-javascript'], []))
+        + (magento_scd_no_js_bundle | bool | ternary(['--no-js-bundle'], []))
+        + (magento_scd_no_css | bool | ternary(['--no-css'], []))
+        + (magento_scd_no_less | bool | ternary(['--no-less'], []))
+        + (magento_scd_no_images | bool | ternary(['--no-images'], []))
+        + (magento_scd_no_fonts | bool | ternary(['--no-fonts'], []))
+        + (magento_scd_no_html | bool | ternary(['--no-html'], []))
+        + (magento_scd_no_misc | bool | ternary(['--no-misc'], []))
+        + (magento_scd_no_html_minify | bool | ternary(['--no-html-minify'], []))
+        + (magento_scd_no_parent | bool | ternary(['--no-parent'], []))
+      }}
+
 - name: Show information about SCD start
   debug:
     msg: |
@@ -19,34 +36,45 @@
         {% endfor %}
       {% endif %}
 
+      {% if _magento_scd_deploy_options | length > 0 -%}
+        Using additional options:
+        {% for option in _magento_scd_deploy_options %}
+          - {{ option }}
+        {% endfor %}
+      {% endif %}
+
       ============================================
 - name: Deploy static content
   block:
-  - name: Deploy static content
-    become: yes
-    become_user: "{{ magento_user }}"
-    command: >
-      php {{ magento_release_dir }}/bin/magento setup:static-content:deploy \
-        {% for theme in magento_scd_excluded_themes -%}
-          --exclude-theme "{{ theme }}" \
-        {% endfor %}
-        -s "{{ magento_scd_strategy }}" \
-        -j {{ magento_scd_parallel_jobs }} \
-        {{ magento_scd_languages | join(' ') }}
-    register: magento_scd
+    - name: Deploy static content
+      become: yes
+      become_user: "{{ magento_user }}"
+      command: >
+        php {{ magento_release_dir }}/bin/magento setup:static-content:deploy \
+          {% for theme in magento_scd_excluded_themes -%}
+            --exclude-theme "{{ theme }}" \
+          {% endfor %}
+          {{ _magento_scd_deploy_options | join(' ') }} \
+          -s "{{ magento_scd_strategy }}" \
+          -j {{ magento_scd_parallel_jobs }} \
+          {{ magento_scd_languages | join(' ') }}
+      register: magento_scd
+      changed_when: true
   rescue:
-  - name: Deploy static content
-    become: yes
-    become_user: "{{ magento_user }}"
-    command: >
-      php {{ magento_release_dir }}/bin/magento setup:static-content:deploy \
-        {% for theme in magento_scd_excluded_themes -%}
-          --exclude-theme "{{ theme }}" \
-        {% endfor %}
-        -s "{{ magento_scd_strategy }}" \
-        -j 1 \
-        {{ magento_scd_languages | join(' ') }}
-    register: magento_scd
+    - name: Deploy static content with a single job
+      become: yes
+      become_user: "{{ magento_user }}"
+      command: >
+        php {{ magento_release_dir }}/bin/magento setup:static-content:deploy \
+          {% for theme in magento_scd_excluded_themes -%}
+            --exclude-theme "{{ theme }}" \
+          {% endfor %}
+          {{ _magento_scd_deploy_options | join(' ') }} \
+          -s "{{ magento_scd_strategy }}" \
+          -j 1 \
+          {{ magento_scd_languages | join(' ') }}
+      register: magento_scd
+      changed_when: true
 
 - name: Set information about Magento SCD
   set_fact:
