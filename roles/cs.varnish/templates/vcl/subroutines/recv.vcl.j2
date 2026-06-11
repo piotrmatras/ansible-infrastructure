@@ -72,11 +72,6 @@ if (req.http.X-Use-Extra-Instance
 # ---  [END] custom project code  ---
 {% endif %}
 
-# Sorting query string parameters
-if (req.url ~ "\?.+&.+") {
-    set req.url = std.querysort(req.url);
-}
-
 if (req.method == "PURGE") {
     if (client.ip !~ purge) {
         return (synth(405, "Method not allowed"));
@@ -316,6 +311,11 @@ if (req.http.cookie ~ "X-Magento-Vary=") {
 # Bypass authenticated GraphQL requests without a X-Magento-Cache-Id
 if (req.url ~ "/graphql" && !req.http.X-Magento-Cache-Id && req.http.Authorization ~ "^Bearer") {
     return (pass);
+}
+
+# Sorting query string parameters for cacheable requests
+if (req.url ~ "\?.+&.+") {
+    set req.url = std.querysort(req.url);
 }
 
 return (hash);
