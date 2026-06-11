@@ -2,6 +2,7 @@ roles:
   - src: geerlingguy.mysql
     version: 6.3.1
   - src: geerlingguy.composer
+    version: 1.9.2
   - src: geerlingguy.ntp
     version: 4.0.0
   - src: zauberpony.mysql-query
