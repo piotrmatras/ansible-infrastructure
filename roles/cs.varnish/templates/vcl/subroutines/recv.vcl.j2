@@ -313,4 +313,9 @@ if (req.url ~ "/graphql" && !req.http.X-Magento-Cache-Id && req.http.Authorizati
     return (pass);
 }
 
+# Sorting query string parameters for cacheable requests
+if (req.url ~ "\?.+&.+") {
+    set req.url = std.querysort(req.url);
+}
+
 return (hash);
