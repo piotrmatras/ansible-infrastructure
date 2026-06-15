@@ -1708,6 +1708,8 @@ varnish_original_url: false
 varnish_html_cache_control_max_age: 60
 varnish_strip_params:
   - "gclid"
+  - "gad_source"
+  - "gclsrc"
   - "utm_[^=&]+"
   - "gdftrk"
   - "_ga" # google analytics

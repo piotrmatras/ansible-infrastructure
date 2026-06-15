@@ -85,6 +85,18 @@ magento_scd_strategy: quick
 magento_scd_parallel_jobs: "{{ ansible_processor_vcpus }}"
 magento_scd_excluded_themes: []
 
+# Optional setup:static-content:deploy skip flags
+magento_scd_no_javascript: no
+magento_scd_no_js_bundle: no
+magento_scd_no_css: no
+magento_scd_no_less: no
+magento_scd_no_images: no
+magento_scd_no_fonts: no
+magento_scd_no_html: no
+magento_scd_no_misc: no
+magento_scd_no_html_minify: no
+magento_scd_no_parent: no
+
 # Tip: When using custom themes exclude luma
 # magento_scd_excluded_themes
 #   - Magento/luma
