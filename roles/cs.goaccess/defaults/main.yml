@@ -1,3 +1,4 @@
+goaccess_enabled: true
 goaccess_data_dir: /var/lib/goaccess
 goaccess_report_dir: /var/www/goaccess
 goaccess_prerotate_path: /usr/local/bin/goaccess-prerotate

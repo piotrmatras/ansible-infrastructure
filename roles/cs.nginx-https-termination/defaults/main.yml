@@ -1,4 +1,5 @@
 # Basic configuration
+https_termination_enabled: true
 https_termination_upstream_scheme: http
 https_termination_upstream_port: 80
 https_termination_upstream_host: 127.0.0.1
