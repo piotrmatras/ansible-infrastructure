@@ -21,9 +21,9 @@
 
 - name: Set snapshot identifiers
   set_fact:
-    rds_gfs_daily_snapshot_id: "{{ rds_gfs_snapshot_name }}-daily-{{ ansible_date_time.date }}"
-    rds_gfs_weekly_snapshot_id: "{{ rds_gfs_snapshot_name }}-weekly-{{ ansible_date_time.date }}"
-    rds_gfs_monthly_snapshot_id: "{{ rds_gfs_snapshot_name }}-monthly-{{ ansible_date_time.date }}"
+    rds_gfs_daily_snapshot_id: "{{ rds_gfs_snapshot_name }}-daily-{{ ansible_facts.date_time.date }}"
+    rds_gfs_weekly_snapshot_id: "{{ rds_gfs_snapshot_name }}-weekly-{{ ansible_facts.date_time.date }}"
+    rds_gfs_monthly_snapshot_id: "{{ rds_gfs_snapshot_name }}-monthly-{{ ansible_facts.date_time.date }}"
     rds_gfs_daily_snapshot_tags:
         - Key: GfsType
           Value: daily

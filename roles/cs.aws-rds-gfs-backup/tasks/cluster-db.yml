@@ -10,11 +10,11 @@
 
 - name: Create weekly cluster snapshot from the daily one
   shell: "aws rds copy-db-cluster-snapshot --target-db-cluster-snapshot-identifier '{{ rds_gfs_weekly_snapshot_id }}' --source-db-cluster-snapshot-identifier '{{ rds_gfs_daily_snapshot_id }}' --tags '{{ rds_gfs_weekly_snapshot_tags | to_json }}' --region '{{ aws_region }}'"
-  when: ansible_date_time.weekday_number | int == rds_gfs_weekly_snapshot_weekday_nr
+  when: ansible_facts.date_time.weekday_number | int == rds_gfs_weekly_snapshot_weekday_nr
 
 - name: Create monthly cluster snapshot from the daily one
   shell: "aws rds copy-db-cluster-snapshot --target-db-cluster-snapshot-identifier '{{ rds_gfs_monthly_snapshot_id }}' --source-db-cluster-snapshot-identifier '{{ rds_gfs_daily_snapshot_id }}' --tags '{{ rds_gfs_monthly_snapshot_tags | to_json }}' --region '{{ aws_region }}'"
-  when: ansible_date_time.day | int == rds_gfs_monthly_snapshot_monthday_nr
+  when: ansible_facts.date_time.day | int == rds_gfs_monthly_snapshot_monthday_nr
 
 - name: Get current cluster snapshots
   amazon.aws.rds_snapshot_info:

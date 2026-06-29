@@ -21,7 +21,7 @@
     aws_ec2_user_launch_script: "{{ autoscaling_instance_start_script }}"
 
 - name: Create AutoScaling Group
-  ec2_asg:
+  amazon.aws.autoscaling_group:
     state: present
     name: "{{ autoscaling_asg_name }}"
     region: "{{ aws_region }}"
@@ -40,10 +40,6 @@
     health_check_period: "{{ autoscaling_healthcheck_grace_period }}"
     termination_policies: "{{ autoscaling_asg_termination_policies }}"
     tags: "{{ aws_tags_default | combine(asg_name_tags, aws_tags_trait_immutable, autoscaling_instance_tags) | dict_to_tag_list }}"
-    # This ansible module does not handle instance replacement properly
-    # so we just update the ASG configuration here and will perform the
-    # replacement via AWS API in the next steps.
-    replace_instances: []
   vars:
     asg_name_tags:
       - Name: "{{ autoscaling_asg_name }}"
@@ -56,7 +52,7 @@
       and autoscaling_asg_desired_capacity > 0
 
 - name: Create ASG Termination Lifecycle Hook
-  ec2_asg_lifecycle_hook:
+  community.aws.autoscaling_lifecycle_hook:
     state: present
     region: "{{ aws_region }}"
     autoscaling_group_name: "{{ autoscaling_asg_name }}"

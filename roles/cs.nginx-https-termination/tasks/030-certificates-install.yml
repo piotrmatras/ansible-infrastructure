@@ -8,7 +8,9 @@
   vars:
     vhost: "{{ entry[0] }}"
     key: "{{ entry[1] }}"
-  when: vhost.crt_do_install and vhost[key.src]
+  when:
+    - vhost.crt_do_install | bool
+    - (vhost[key.src] | default('', true) | string | length) > 0
   loop: >-
     {{
       https_termination_vhosts.values() | product([
@@ -32,7 +34,9 @@
       {{ lookup('file', vhost.crt_install_chain_src) }}
     mode: 0600
     validate: 'openssl x509 -in %s -text -noout'
-  when: vhost.crt_do_install and vhost.crt_install_chain_src
+  when:
+    - vhost.crt_do_install | bool
+    - (vhost.crt_install_chain_src | default('', true) | string | length) > 0
   loop: "{{ https_termination_vhosts.values() | list }}"
   loop_control:
     label: "{{ vhost.name }} -> {{ vhost.crt_install_fullchain_path }}"

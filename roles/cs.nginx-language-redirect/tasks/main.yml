@@ -1,6 +1,7 @@
 - name: Install dependencies
   import_tasks: 000-install.yml
+  when: nginx_language_redirect_enabled | bool
 
 - name: Configure redirects
   import_tasks: 001-configure.yml
-
+  when: nginx_language_redirect_enabled | bool

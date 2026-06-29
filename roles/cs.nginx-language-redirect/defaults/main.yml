@@ -1,4 +1,5 @@
 # Name of server.d include
+nginx_language_redirect_enabled: true
 nginx_language_redirect_site: default
 
 # kind of redirect we want to have

@@ -36,7 +36,7 @@
           ---------------------------------------------
 
     - name: Set artifact build number fact if available
-      when: deploy_artifact_build_json_data.nr | default(false, true)
+      when: (deploy_artifact_build_json_data.nr | default('', true) | string | length) > 0
       set_fact:
         mageops_artifact_build_nr: "{{ deploy_artifact_build_json_data.nr }}"
 
@@ -52,7 +52,7 @@
 
     - name: Gather deployment run facts
       set_fact:
-        deploy_release_id: "{{ ansible_date_time.iso8601_basic_short }}"
+        deploy_release_id: "{{ ansible_facts.date_time.iso8601_basic_short }}"
         deploy_keep_current_release: "{{ deploy_skip_installation | default(false) and deploy_previous_release_exists }}"
         deploy_previous_release_id: "{{ deploy_previous_release_exists | ternary((_current_release_check.stat.lnk_target | default('')).rstrip('/').split('/') | last, false) }}"
 
@@ -126,10 +126,10 @@
   tasks:
     - name: Execute custom post deploy tasks
       include_tasks: "{{ mageops_extra_tasks_deploy }}"
-      when: mageops_extra_tasks_deploy is defined and mageops_extra_tasks_deploy
+      when: (mageops_extra_tasks_deploy | default('', true) | string | length) > 0
 
     - name: Save deploy release information to file
-      when: deploy_release_save_info_file_path | default(false, true)
+      when: (deploy_release_save_info_file_path | default('', true) | string | length) > 0
       copy:
         dest: "{{ deploy_release_save_info_file_path }}"
         content: "{{ deploy_release_info | to_nice_json }}"

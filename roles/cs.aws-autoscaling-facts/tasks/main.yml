@@ -1,5 +1,5 @@
 - name: Get ASG app information
-  ec2_asg_info:
+  amazon.aws.autoscaling_group_info:
     region: "{{ aws_region }}"
     tags: >-
         {{
@@ -18,7 +18,7 @@
   register: _aws_asg_app
 
 - name: Get ASG app-extra information
-  ec2_asg_info:
+  amazon.aws.autoscaling_group_info:
     region: "{{ aws_region }}"
     tags: >-
       {{
@@ -38,7 +38,7 @@
   register: _aws_asg_app_extra
 
 - name: Get ASG app-pio information
-  ec2_asg_info:
+  amazon.aws.autoscaling_group_info:
     region: "{{ aws_region }}"
     tags: >-
       {{ aws_tags_default | combine(

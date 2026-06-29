@@ -12,13 +12,13 @@
       when: stop_asg
       block:
         - name: Get App Node Auto Scaling Groups
-          community.aws.ec2_asg_info:
+          amazon.aws.autoscaling_group_info:
             region: "{{ aws_region }}"
             tags: "{{ aws_tags_base | combine(aws_tags_role_app) }}"
           register: stop_asg_facts
 
         - name: Scale down ASG to zero
-          ec2_asg:
+          amazon.aws.autoscaling_group:
             name: "{{ item.name }}"
             region: "{{ aws_region }}"
             state: present
@@ -42,7 +42,7 @@
 
     - name: Scale down all App Node ASGs
       when: stop_asg
-      ec2_asg:
+      amazon.aws.autoscaling_group:
         name: "{{ item.auto_scaling_group_name }}"
         region: "{{ aws_region }}"
         state: present

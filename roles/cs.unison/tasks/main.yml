@@ -1,5 +1,5 @@
 - name: Fail with warning about unspported OS
-  when: ansible_distribution | lower not in ['macosx', 'rocky']
+  when: ansible_facts.distribution | lower not in ['macosx', 'rocky']
   debug:
     msg: |
 
@@ -8,15 +8,15 @@
       ====================================================================
 
       Automated installation is supported only on macOS and Rocky and your
-      system has been identified as: {{ ansible_distribution }}
+      system has been identified as: {{ ansible_facts.distribution }}
 
       You will have to install unison and fsmonitor manually yourself
       to get continous file sync.
 
 - name: Install unison client for macOS
   import_tasks: install-macos.yml
-  when: ansible_distribution | lower == 'macosx'
+  when: ansible_facts.distribution | lower == 'macosx'
 
 - name: Install unison client for Rocky
   import_tasks: install-rocky.yml
-  when: ansible_distribution | lower == 'rocky'
+  when: ansible_facts.distribution | lower == 'rocky'

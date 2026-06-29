@@ -22,7 +22,7 @@
   lambda:
     name: "{{ aws_lambda_handle_import_scaling_name }}"
     state: "{% if magento_aws_ondemand_import_instance_enable %}present{% else %}absent{% endif %}"
-    zip_file: "{% if magento_aws_ondemand_import_instance_enable %}{{ aws_lambda_import_scaling_deploy_package_path }}{% else %}omit{% endif %}"
+    zip_file: "{{ aws_lambda_import_scaling_deploy_package_path if magento_aws_ondemand_import_instance_enable else omit }}"
     runtime: "{{ aws_lambda_handle_import_scaling_runtime }}"
     role: "arn:aws:iam::{{ aws_account_id }}:role/{{ aws_iam_role_import_scaling_lambda_execution }}"
     handler: import_scaling_handler.handle
@@ -47,7 +47,7 @@
     region: "{{ aws_region }}"
     state: "{% if magento_aws_ondemand_import_instance_enable %}present{% else %}absent{% endif %}"
     schedule_expression: "{{ aws_import_scaling_lambda_schedule }}"
-    targets: "{% if magento_aws_ondemand_import_instance_enable %}{{ handle_import_scaling_lambda_eventrule_targets }}{% else %}[]{% endif %}"
+    targets: "{{ handle_import_scaling_lambda_eventrule_targets if magento_aws_ondemand_import_instance_enable else [] }}"
   register: import_scaling_schedule_event
 
 - name: Allow autoscaling event handler lambda to be executed by CloudWatch Events
@@ -58,4 +58,4 @@
     action: "lambda:InvokeFunction"
     principal: "events.amazonaws.com"
     statement_id: "AWSEvents-importScalingHandler-{{ mageops_app_name }}"
-    source_arn: "{% if magento_aws_ondemand_import_instance_enable %}{{ import_scaling_schedule_event.rule.arn }}{% else %}omit{% endif %}"
+    source_arn: "{{ import_scaling_schedule_event.rule.arn if magento_aws_ondemand_import_instance_enable else omit }}"

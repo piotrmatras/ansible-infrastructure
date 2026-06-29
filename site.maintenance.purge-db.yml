@@ -26,7 +26,7 @@
         state: dump
         name: "{{ mageops_app_mysql_db }}"
         quick: yes
-        target: "{{ pre_purge_db_directory }}/{{ mageops_app_name }}-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}.{{ ansible_date_time.minute }}.sql"
+        target: "{{ pre_purge_db_directory }}/{{ mageops_app_name }}-{{ ansible_facts.date_time.date }}-{{ ansible_facts.date_time.hour }}.{{ ansible_facts.date_time.minute }}.sql"
 
     - name: Drop the current database
       mysql_db:
@@ -36,7 +36,7 @@
         state: absent
         name: "{{ mageops_app_mysql_db }}"
   vars:
-    - pre_purge_db_directory: "{{ ansible_env.HOME }}/maintenance-db-purge-dumps/{{ mageops_app_name }}/"
+    pre_purge_db_directory: "{{ ansible_facts.env.HOME }}/maintenance-db-purge-dumps/{{ mageops_app_name }}/"
   vars_files:
     - vars/app/credentials.yml
     - vars/app/env.yml

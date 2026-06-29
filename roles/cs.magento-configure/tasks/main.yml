@@ -25,7 +25,7 @@
         - include_tasks: 080-core-config.yml
         - include_tasks: 110-deploy-static-content.yml
           when: not magento_scd_skip
-      when: deploy_install_new_release
+      when: deploy_install_new_release | bool
   become: yes
   become_user: "{{ magento_user }}"
 
@@ -46,6 +46,6 @@
   include_tasks: 200-config-finalize.yml
 
 - include_tasks: 210-setup-workers.yml
-  when: magento_consumer_workers_enable
+  when: magento_consumer_workers_enable | bool
 
 - include_tasks: 250-setup-services.yml

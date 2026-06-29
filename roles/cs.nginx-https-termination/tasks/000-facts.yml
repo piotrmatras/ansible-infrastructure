@@ -124,7 +124,7 @@
         '127.0.0.1',
         '::1',
         'localhost',
-        ansible_hostname,
+        ansible_facts.hostname,
         inventory_hostname
       ]
   loop: "{{ https_termination_vhosts.values() | list }}"

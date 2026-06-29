@@ -66,8 +66,8 @@
 
 # Function ARN has to be constructed manually, because the one from register contains version and prohibits the call from working
 - name: Attach function to exception report group
-  local_action:
-    module: "shell aws logs put-subscription-filter --region {{ aws_region }} --log-group-name /{{ mageops_project }}/{{ mageops_environment }}/{{ item.group }} --filter-name send_to_slack --filter-pattern {{ item.filter | default('')|quote }} --destination-arn arn:aws:lambda:{{ aws_region }}:{{ aws_account_id }}:function:{{ aws_lambda_slack_exceptions_forwarder_name }}"
+  shell: "aws logs put-subscription-filter --region {{ aws_region }} --log-group-name /{{ mageops_project }}/{{ mageops_environment }}/{{ item.group }} --filter-name send_to_slack --filter-pattern {{ item.filter | default('')|quote }} --destination-arn arn:aws:lambda:{{ aws_region }}:{{ aws_account_id }}:function:{{ aws_lambda_slack_exceptions_forwarder_name }}"
+  delegate_to: localhost
   with_items: "{{ aws_logs_slack_log_groups }}"
 
 - name: Fetch existing log groups

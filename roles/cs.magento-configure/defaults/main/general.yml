@@ -82,7 +82,7 @@ magento_scd_strategy: quick
 
 # We need a t3.small builder or frequently it will run out of memory
 # So setting the default at 1 upon consideration
-magento_scd_parallel_jobs: "{{ ansible_processor_vcpus }}"
+magento_scd_parallel_jobs: "{{ ansible_facts.processor_vcpus }}"
 magento_scd_excluded_themes: []
 
 # Optional setup:static-content:deploy skip flags

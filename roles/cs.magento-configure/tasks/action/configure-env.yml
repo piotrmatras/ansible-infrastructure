@@ -1,45 +1,49 @@
 - name: Configure Magento environment (env.php)
   block:
   - name: Enable HTTP cache
-    when: magento_http_cache_enable
+    when: magento_http_cache_enable | bool
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
             | combine(magento_app_etc_config_http_cache, recursive=true) }}
 
   - name: Enable lazy resize configuration
-    when: lazy_resize_secret
+    when: (lazy_resize_secret | default('', true) | string | length) > 0
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
             | combine(magento_app_etc_config_lazy_resize, recursive=true) }}
 
   - name: Enable ElasticSuite configuration
-    when: elasticsuite_version | default(false) and (mageops_elasticsearch_opensearch_flavor == "elasticsearch")
+    when:
+      - (elasticsuite_version | default('', true) | string | length) > 0
+      - mageops_elasticsearch_opensearch_flavor == "elasticsearch"
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
             | combine(magento_app_etc_config_elasticsuite, recursive=true) }}
 
   - name: Enable ElasticSuite configuration with Opensearch
-    when: elasticsuite_version | default(false) and (mageops_elasticsearch_opensearch_flavor == "opensearch")
+    when:
+      - (elasticsuite_version | default('', true) | string | length) > 0
+      - mageops_elasticsearch_opensearch_flavor == "opensearch"
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
             | combine(magento_app_etc_config_opensearch, recursive=true) }}
 
   - name: Configure Redis caching
-    when: magento_redis_cache
+    when: magento_redis_cache | bool
     block:
     - name: Enable default Redis cache
-      when: not magento_redis_cache_l2
+      when: not (magento_redis_cache_l2 | bool)
       set_fact:
         magento_app_etc_config: >-
           {{ magento_app_etc_config
               | combine(magento_app_etc_config_cache_default_redis, recursive=true) }}
 
     - name: Enable 2-level default Redis cache
-      when: magento_redis_cache_l2
+      when: magento_redis_cache_l2 | bool
       set_fact:
         magento_app_etc_config: >-
           {{ magento_app_etc_config
@@ -52,35 +56,35 @@
               | combine(magento_app_etc_config_cache_page_redis, recursive=true) }}
 
   - name: Enable RabbitMQ queue configuration
-    when: magento_rabbitmq_queue
+    when: magento_rabbitmq_queue | bool
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
             | combine(magento_app_etc_config_queue_rabbitmq, recursive=true) }}
 
   - name: Adjust configuration for consumer workers
-    when: magento_consumer_workers_enable
+    when: magento_consumer_workers_enable | bool
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
             | combine(magento_app_etc_config_consumer_workers, recursive=true) }}
 
   - name: Adjust configuration for cron consumers
-    when: magento_cron_consumers_enable
+    when: magento_cron_consumers_enable | bool
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
             | combine(magento_app_etc_config_cron_consumers, recursive=true) }}
 
   - name: Configure X-Magento-Vary cookie signing
-    when: magento_vary_sign
+    when: magento_vary_sign | bool
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
             | combine(magento_app_etc_config_cookie_sign, recursive=true) }}
 
   - name: Enable mysql ssl requirement
-    when: mageops_mysql_require_ssl
+    when: mageops_mysql_require_ssl | bool
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
@@ -93,7 +97,7 @@
             | combine(magento_app_etc_config_extra, recursive=true) }}
 
   - name: Config graphql salt
-    when: magento_graphql_salt
+    when: (magento_graphql_salt | default('', true) | string | length) > 0
     set_fact:
       magento_app_etc_config: >-
         {{ magento_app_etc_config
