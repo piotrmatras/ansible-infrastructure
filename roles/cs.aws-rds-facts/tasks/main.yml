@@ -36,8 +36,7 @@
   register: rds_cluster_info
   when:
     - aws_rds_instance is defined
-    - aws_rds_instance.db_cluster_identifier is defined
-    - aws_rds_instance.db_cluster_identifier
+    - (aws_rds_instance.db_cluster_identifier | default('', true) | string | length) > 0
     - aws_rds_instance.engine is match("^aurora")
 
 - name: Set facts about project's RDS cluster
