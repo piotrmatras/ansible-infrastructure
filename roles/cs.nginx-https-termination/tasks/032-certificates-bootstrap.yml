@@ -8,7 +8,7 @@
     select_crypto_backend: cryptography
     path: "{{ vhost.crt_boot_key_path }}"
     type: RSA
-  when: vhost.crt_do_bootstrap
+  when: vhost.crt_do_bootstrap | bool
   loop: "{{ https_termination_vhosts.values() | list }}"
   loop_control:
     label: "{{ vhost.name }}"
@@ -28,7 +28,7 @@
           | list
       }}
     subject_alt_name_critical: yes
-  when: vhost.crt_do_bootstrap
+  when: vhost.crt_do_bootstrap | bool
   loop: "{{ https_termination_vhosts.values() | list }}"
   loop_control:
     label: "{{ vhost.name }}"
@@ -41,7 +41,7 @@
     privatekey_path: "{{ vhost.crt_boot_key_path }}"
     csr_path: "{{ vhost.crt_boot_csr_path }}"
     provider: selfsigned
-  when: vhost.crt_do_bootstrap
+  when: vhost.crt_do_bootstrap | bool
   loop: "{{ https_termination_vhosts.values() | list }}"
   loop_control:
     label: "{{ vhost.name }}"
@@ -54,7 +54,7 @@
     force: yes
     src:  "{{ vhost.crt_boot_cert_path }}"
     dest: "{{ vhost.crt_boot_fullchain_path }}"
-  when: vhost.crt_do_bootstrap
+  when: vhost.crt_do_bootstrap | bool
   loop: "{{ https_termination_vhosts.values() | list }}"
   loop_control:
     label: "{{ vhost.name }}"
@@ -65,7 +65,7 @@
   stat:
     path: "{{ vhost.crt_live_fullchain_path }}"
     follow: yes
-  when: vhost.crt_do_bootstrap
+  when: vhost.crt_do_bootstrap | bool
   loop: "{{ https_termination_vhosts.values() | list }}"
   loop_control:
     label: "{{ vhost.name }}"
@@ -78,7 +78,7 @@
     src:  "{{ vhost[key.src] }}"
     dest: "{{ vhost[key.dst] }}"
     force: yes
-  when: vhost.crt_do_bootstrap and not (live_check.stat.exists | default(false))
+  when: (vhost.crt_do_bootstrap | bool) and not (live_check.stat.exists | default(false))
   vars:
     vhost: "{{ entry[0][0] }}"
     live_check: "{{ entry[0][1] }}"
