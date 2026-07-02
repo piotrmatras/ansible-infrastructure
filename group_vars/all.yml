@@ -368,7 +368,7 @@ aws_security_group_persistent_rules_tinyproxy:
     group_name: "{{ aws_security_group_app_name }}"
 
 aws_security_group_persistant_rules_tpl: [
-  "{{ mageops_ssh_proxy_persistant | ternary(aws_security_group_persistant_rules_ssh_proxy, []) }}",
+  "{{ (mageops_ssh_proxy_persistant | bool) | ternary(aws_security_group_persistant_rules_ssh_proxy, []) }}",
   "{{ mageops_tinyproxy_persistant_enabled | ternary(aws_security_group_persistent_rules_tinyproxy, []) }}"
 ]
 
@@ -2105,7 +2105,7 @@ sshd_config_users_ssh_proxy:
 
 sshd_config_users_tpl: [
   "{{ sshd_config_users_base }}",
-  "{{ mageops_ssh_proxy_persistant | ternary(sshd_config_users_ssh_proxy, {}) }}",
+  "{{ (mageops_ssh_proxy_persistant | bool) | ternary(sshd_config_users_ssh_proxy, {}) }}",
 ]
 
 sshd_config_users: "{{ sshd_config_users_tpl | combine }}"
