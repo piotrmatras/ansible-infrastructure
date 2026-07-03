@@ -1,27 +1,16 @@
-- name: Install RabbitMQ packages for x86_64
+- name: Install RabbitMQ Erlang Package
   when: ansible_architecture == 'x86_64'
-  block:
-    - name: Install RabbitMQ Erlang Package
-      dnf:
-        allow_downgrade: no
-        name: "erlang"
-      notify: Restart rabbitmq
+  dnf:
+    allow_downgrade: no
+    name: "erlang"
+  notify: Restart rabbitmq
 
-    - name: Install RabbitMQ Package
-      dnf:
-        allow_downgrade: no
-        name: "{{ rabbitmq_server_package_name }}"
-      notify: Restart rabbitmq
-
-- name: Install RabbitMQ packages for aarch64
-  when: ansible_architecture == 'aarch64'
-  block:
-    - name: Install RabbitMQ Package for aarch64
-      dnf:
-        allow_downgrade: no
-        name: "{{ rabbitmq_server_package_name }}"
-        state: present
-      notify: Restart rabbitmq
+- name: Install RabbitMQ Package
+  dnf:
+    allow_downgrade: no
+    name: "{{ rabbitmq_server_package_name }}"
+    state: present
+  notify: Restart rabbitmq
 
 - name: Install rabbitmq configuration file
   template:

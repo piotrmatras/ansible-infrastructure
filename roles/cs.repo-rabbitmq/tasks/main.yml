@@ -3,51 +3,13 @@
     msg: "You cannot install RabbitMQ on this architecture. Supported architectures: x86_64, aarch64."
   when: ansible_architecture not in ['x86_64', 'aarch64']
 
-- name: Gather installed package facts
-  package_facts:
-    manager: auto
-
-- name: Set installed RabbitMQ server version
-  set_fact:
-    rabbitmq_installed_server_version: >-
-      {{
-        (
-          ansible_facts.packages['rabbitmq-server'] | default([])
-          | first | default({})
-        ).version | default('', true)
-      }}
-
-- name: Compute RabbitMQ installed and target release series
-  set_fact:
-    rabbitmq_installed_release: "{{ rabbitmq_installed_server_version | regex_search('^[0-9]+\\.[0-9]+') | default('', true) }}"
-    rabbitmq_target_release: "{{ rabbitmq_release | string | regex_search('^[0-9]+\\.[0-9]+') | default('', true) }}"
-
-- name: Fail if RabbitMQ in-place upgrade path is unsupported
-  fail:
-    msg: >-
-      RabbitMQ {{ rabbitmq_installed_server_version }} cannot be upgraded in-place
-      directly to {{ rabbitmq_release }}. Keep rabbitmq_release at {{ rabbitmq_installed_release }}
-      or upgrade in supported stages: 3.11.18 -> 3.12.x -> 3.13.x -> 4.2.x,
-      enabling all stable feature flags before each release-series upgrade.
-  when:
-    - rabbitmq_installed_server_version | length
-    - rabbitmq_installed_release != rabbitmq_target_release
-    - not (
-        [rabbitmq_installed_release, rabbitmq_target_release] in rabbitmq_supported_direct_release_upgrades
-        or (
-          rabbitmq_installed_release == '3.11'
-          and rabbitmq_target_release == '3.12'
-          and rabbitmq_installed_server_version is version('3.11.18', '>=')
-        )
-      )
-
 - name: Install rabbitmq repo
   template:
     src: rabbitmq.repo
     dest: /etc/yum.repos.d/rabbitmq.repo
     mode: "0644"
 
-- name: Configure RabbitMQ direct RPMs for aarch64
+- name: Install RabbitMQ Erlang RPM for aarch64
   when: ansible_architecture == 'aarch64'
   block:
     - name: Import RabbitMQ release signing key for direct ARM Erlang RPM install
@@ -55,65 +17,8 @@
         state: present
         key: https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
 
-    - name: Set RabbitMQ Erlang major release for direct ARM RPM install
-      set_fact:
-        rabbitmq_erlang_aarch64_major_release: >-
-          {{
-            rabbitmq_erlang_aarch64_major_release_by_rabbitmq_release[rabbitmq_target_release]
-            | default('', true)
-          }}
-
-    - name: Fail if RabbitMQ Erlang major release is unavailable
-      fail:
-        msg: >-
-          No aarch64 Erlang major release is configured for RabbitMQ release
-          {{ rabbitmq_release }}. Add a mapping for RabbitMQ series
-          {{ rabbitmq_target_release }} before installing on ARM.
-      when: rabbitmq_erlang_aarch64_major_release | length == 0
-
-    - name: Fetch RabbitMQ Erlang RPM release metadata for aarch64
-      uri:
-        url: https://api.github.com/repos/rabbitmq/erlang-rpm/releases?per_page=100
-        return_content: yes
-      register: rabbitmq_erlang_releases
-
-    - name: Initialize supported EL9 aarch64 Erlang RPM URL
-      set_fact:
-        rabbitmq_erlang_aarch64_rpm_url: ""
-
-    - name: Select latest supported EL9 aarch64 Erlang RPM URL
-      set_fact:
-        rabbitmq_erlang_aarch64_rpm_url: "{{ item.1.browser_download_url }}"
-      loop: "{{ query('ansible.builtin.subelements', rabbitmq_erlang_releases.json, 'assets', {'skip_missing': true}) }}"
-      when:
-        - rabbitmq_erlang_aarch64_rpm_url | length == 0
-        - not (item.0.draft | default(false) | bool)
-        - not (item.0.prerelease | default(false) | bool)
-        - item.0.tag_name is match('^v' ~ rabbitmq_erlang_aarch64_major_release ~ '\\.')
-        - item.1.name is match('^erlang-.*-1\\.el9\\.aarch64\\.rpm$')
-
-    - name: Fail if supported EL9 aarch64 Erlang RPM is unavailable
-      fail:
-        msg: >-
-          Could not find an EL9 aarch64 Erlang {{ rabbitmq_erlang_aarch64_major_release }}.x
-          RPM for RabbitMQ {{ rabbitmq_release }} in RabbitMQ Erlang RPM releases.
-      when: rabbitmq_erlang_aarch64_rpm_url | length == 0
-
-    - name: Check supported EL9 aarch64 Erlang RPM URL
-      uri:
-        url: "{{ rabbitmq_erlang_aarch64_rpm_url }}"
-        method: HEAD
-        status_code: 200
-      register: rabbitmq_erlang_aarch64_rpm_check
-
-    - name: Fail if supported EL9 aarch64 Erlang RPM is unavailable
-      fail:
-        msg: "Could not find supported EL9 aarch64 Erlang RPM at {{ rabbitmq_erlang_aarch64_rpm_url }}."
-      when: rabbitmq_erlang_aarch64_rpm_check is failed
-
     - name: Install RabbitMQ Erlang RPM for aarch64
       dnf:
         allow_downgrade: no
-        disable_gpg_check: yes
         name: "{{ rabbitmq_erlang_aarch64_rpm_url }}"
         state: present

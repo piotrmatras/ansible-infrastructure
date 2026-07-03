@@ -1904,7 +1904,7 @@ rabbitmq_enable_management: yes
 
 # RabbitMQ release series to install and keep updated within
 rabbitmq_release: "4.2"
-rabbitmq_versionlock_package: "{{ rabbitmq_release | default(false, true) | ternary('rabbitmq-server-' ~ rabbitmq_release ~ '.*', []) }}"
+rabbitmq_versionlock_package: "rabbitmq-server-{{ rabbitmq_release }}.*"
 
 # This port will provide an HTTP API and management UI
 # - might be useful for debugging and will be accessible from `mageops_trusted_cidr_blocks`
