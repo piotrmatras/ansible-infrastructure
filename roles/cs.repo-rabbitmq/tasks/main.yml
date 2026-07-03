@@ -24,3 +24,4 @@
         disable_gpg_check: yes
         name: "{{ rabbitmq_erlang_aarch64_rpm_url }}"
         state: present
+      notify: Restart rabbitmq

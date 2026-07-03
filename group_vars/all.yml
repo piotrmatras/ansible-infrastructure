@@ -1905,6 +1905,9 @@ rabbitmq_enable_management: yes
 # RabbitMQ release series to install and keep updated within
 rabbitmq_release: "4.2"
 rabbitmq_versionlock_package: "rabbitmq-server-{{ rabbitmq_release }}.*"
+# Keep aligned with RabbitMQ/Erlang compatibility: https://www.rabbitmq.com/docs/4.2/which-erlang
+erlang_release: "27"
+erlang_versionlock_package: "erlang-{{ erlang_release }}.*"
 
 # This port will provide an HTTP API and management UI
 # - might be useful for debugging and will be accessible from `mageops_trusted_cidr_blocks`
@@ -2052,7 +2055,8 @@ packages_remove: "{{ mageops_packages_banned }}"
 mageops_elasticsearch_version_full: "elasticsearch-{{ mageops_elasticsearch_version }}.*"
 versionlock_persistent_packages_base_tpl: [
   "{{ mageops_elasticsearch_version | ternary(mageops_elasticsearch_version_full, []) }}",
-  "{{ mageops_rabbitmq_create | ternary(rabbitmq_versionlock_package, []) }}"
+  "{{ mageops_rabbitmq_create | ternary(rabbitmq_versionlock_package, []) }}",
+  "{{ mageops_rabbitmq_create | ternary(erlang_versionlock_package, []) }}"
 ]
 
 # Package locks per instance
