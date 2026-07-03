@@ -1,5 +1,5 @@
 - name: Install RabbitMQ Erlang Package
-  when: ansible_architecture == 'x86_64'
+  when: ansible_facts.architecture == 'x86_64'
   dnf:
     allow_downgrade: no
     name: "erlang"
