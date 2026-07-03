@@ -1908,6 +1908,9 @@ rabbitmq_versionlock_package: "rabbitmq-server-{{ rabbitmq_release }}.*"
 # Keep aligned with RabbitMQ/Erlang compatibility: https://www.rabbitmq.com/docs/4.2/which-erlang
 erlang_release: "27"
 erlang_versionlock_package: "erlang-{{ erlang_release }}.*"
+# aarch64 uses a direct RPM, so this exact version duplicates erlang_release on purpose.
+# Update from the latest matching erlang-<version>-1.el9.aarch64.rpm at https://github.com/rabbitmq/erlang-rpm/releases
+rabbitmq_erlang_aarch64_rpm_version: "27.3.4.13-1"
 
 # This port will provide an HTTP API and management UI
 # - might be useful for debugging and will be accessible from `mageops_trusted_cidr_blocks`
