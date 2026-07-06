@@ -9,19 +9,8 @@
     dest: /etc/yum.repos.d/rabbitmq.repo
     mode: "0644"
 
-- name: Install RabbitMQ Erlang RPM for aarch64
+- name: Import RabbitMQ release signing key for ARM package repositories
   when: ansible_facts.architecture == 'aarch64'
-  block:
-    - name: Import RabbitMQ release signing key for ARM package repositories
-      rpm_key:
-        state: present
-        key: https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
-
-    - name: Install RabbitMQ Erlang RPM for aarch64
-      dnf:
-        allow_downgrade: no
-        # RabbitMQ's direct aarch64 Erlang RPM is not signed.
-        disable_gpg_check: yes
-        name: "{{ rabbitmq_erlang_aarch64_rpm_url }}"
-        state: present
-      notify: Restart rabbitmq
+  rpm_key:
+    state: present
+    key: https://github.com/rabbitmq/signing-keys/releases/download/3.0/rabbitmq-release-signing-key.asc
