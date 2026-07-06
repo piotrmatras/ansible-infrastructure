@@ -16,6 +16,8 @@
       delegate_facts: no
       become: no
       when: aws_use
+    - role: cs.repo-rabbitmq
+      when: mageops_rabbitmq_create
     - role: cs.versionlock
       node_name: persistent
       versionlock_packages: "{{ versionlock_persistent_packages + versionlock_persistent_packages_base + versionlock_persistent_packages_extra }}"

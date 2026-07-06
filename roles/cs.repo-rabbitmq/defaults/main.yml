@@ -1,0 +1,7 @@
+# RabbitMQ release series used by repository and package installs.
+rabbitmq_release: "4.2"
+
+# Erlang RPM used on aarch64 where the RabbitMQ Erlang repo does not provide ARM packages.
+rabbitmq_erlang_aarch64_rpm_version: "27.3.4.13-1"
+rabbitmq_erlang_aarch64_release_tag: "{{ rabbitmq_erlang_aarch64_rpm_version | regex_replace('-.*$', '') }}"
+rabbitmq_erlang_aarch64_rpm_url: "https://github.com/rabbitmq/erlang-rpm/releases/download/v{{ rabbitmq_erlang_aarch64_release_tag }}/erlang-{{ rabbitmq_erlang_aarch64_rpm_version }}.el9.aarch64.rpm"

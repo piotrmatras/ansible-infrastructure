@@ -10,6 +10,11 @@ rabbitmq_http_port: 15672
 # Whether to enable the web management API+UI plugin
 rabbitmq_enable_management: no
 
+# RabbitMQ release series to install. Keeps installs and updates within this
+# minor release while still allowing patch releases, e.g. 4.2.x.
+rabbitmq_release: "4.2"
+rabbitmq_server_package_name: "rabbitmq-server-{{ rabbitmq_release }}.*"
+
 # List of plugins to be enabled besides the management UI
 rabbitmq_plugins: []
 
