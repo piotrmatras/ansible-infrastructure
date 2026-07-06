@@ -163,7 +163,7 @@
       when: mageops_install_magerun
 
     - role: cs.ssh-tunel
-      when: mageops_ssh_proxy_persistant
+      when: mageops_ssh_proxy_persistant | bool
 
     - role: cs.new-relic
       when: mageops_new_relic_enabled

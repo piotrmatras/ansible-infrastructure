@@ -85,7 +85,7 @@
           password: "{% if magento_rabbitmq_queue %}{{ magento_rabbitmq_password | mandatory }}{% endif %}"
       when: mageops_rabbitmq_create
     - role: cs.ssh-proxy-user
-      when: mageops_ssh_proxy_persistant
+      when: mageops_ssh_proxy_persistant | bool
     - role: cs.tinyproxy
       tinyproxy_enabled: "{{ mageops_tinyproxy_persistant_enabled  }}"
     - role: cs.monitoring
