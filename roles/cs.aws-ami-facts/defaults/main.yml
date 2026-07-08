@@ -45,7 +45,7 @@ ami_facts_common_filters_no_arch:
 ami_facts_clean_base_filters:
   name: "{{ aws_ami_base_marketplace_name }}"
   is-public: "true"
-  owner-alias: "aws-marketplace"
+  owner-id: "792107900819"
 
 ami_facts_app_node_tags: "{{ aws_tags_base | combine(aws_tags_role_app) }}"
 
