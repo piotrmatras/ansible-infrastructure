@@ -1,6 +1,5 @@
 # Base app/etc/env.php config
 
-
 magento_app_etc_config:
   backend:
     frontName: "{{ magento_admin_path }}"

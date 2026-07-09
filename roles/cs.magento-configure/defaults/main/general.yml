@@ -43,7 +43,6 @@ magento_redis_cache_l2_symfony_timeout: "2.5"
 magento_redis_cache_l2_symfony_read_timeout: "2.0"
 magento_redis_cache_l2_symfony_cleanup_percentage: 90
 
-
 magento_consumer_workers_enable: yes
 magento_consumer_workers:
    - consumer: codegeneratorProcessor
