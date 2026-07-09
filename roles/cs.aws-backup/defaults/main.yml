@@ -1,0 +1,9 @@
+aws_backup_enabled: false
+aws_backup_vault_name: "{{ mageops_app_name }}-backup-vault"
+aws_backup_plan_name: "{{ mageops_app_name }}-backup-plan"
+aws_backup_schedule_expression: "cron(0 5 ? * * *)"
+aws_backup_start_window_minutes: 60
+aws_backup_completion_window_minutes: 1440
+aws_backup_delete_after_days: 35
+aws_backup_recovery_point_tags: {}
+aws_backup_selections: {}
