@@ -1,10 +1,5 @@
 # Base app/etc/env.php config
 
-###
-# Use local Read-Only Redis REPLICA (slave) as a L2 cache via unix socket.
-# This can be only achieved by splitting writes to master and reads locally.
-# See: https://github.com/colinmollenhour/Cm_Cache_Backend_Redis#load-balancer-or-service-discovery
-###
 
 magento_app_etc_config:
   backend:
@@ -135,7 +130,7 @@ magento_app_etc_config_cache_default_redis:
     frontend:
       default:
         id_prefix: '061_'
-        backend: "{{ magento_redis_cache_backend_fqcn }}"
+        backend: \Magento\Framework\Cache\Backend\Redis
         backend_options:
           server: "{{ mageops_redis_host }}"
           database: "0"
@@ -155,7 +150,7 @@ magento_app_etc_config_cache_default_redis_l2:
         id_prefix: '061_'
         backend: \Magento\Framework\Cache\Backend\RemoteSynchronizedCache
         backend_options:
-          remote_backend: "{{ magento_redis_cache_backend_fqcn }}"
+          remote_backend: \Magento\Framework\Cache\Backend\Redis
           remote_backend_options:
             persistent: 0
             server: "{{ mageops_redis_host }}"
@@ -177,7 +172,7 @@ magento_app_etc_config_cache_default_redis_l2:
         id_prefix: '061_'
         backend: \Magento\Framework\Cache\Backend\RemoteSynchronizedCache
         backend_options:
-          remote_backend: "{{ magento_redis_cache_backend_fqcn }}"
+          remote_backend: \Magento\Framework\Cache\Backend\Redis
           remote_backend_options:
             persistent: 0
             server: "{{ mageops_redis_host }}"
@@ -303,7 +298,7 @@ magento_app_etc_config_cache_page_redis:
     frontend:
       page_cache:
         id_prefix: '061_'
-        backend: "{{ magento_redis_cache_backend_fqcn }}"
+        backend: \Magento\Framework\Cache\Backend\Redis
         backend_options:
           server: "{{ mageops_redis_host }}"
           database: "1"
