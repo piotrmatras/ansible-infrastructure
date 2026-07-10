@@ -1,13 +1,22 @@
-- name: Ensure AWS backup vault exists
+- name: Validate AWS Backup resource kinds
+  ansible.builtin.assert:
+    that:
+      - aws_backup_resource_kinds is mapping
+      - aws_backup_resource_kinds.keys() | difference(_aws_backup_resource_kind_selections.keys()) | length == 0
+      - aws_backup_resource_kinds.values() | map('type_debug') | difference(['bool']) | length == 0
+    fail_msg: >-
+      aws_backup_resource_kinds must be a map of supported resource kinds to boolean values.
+
+- name: Ensure AWS Backup vault exists
   amazon.aws.backup_vault:
     state: present
     backup_vault_name: "{{ aws_backup_vault_name }}"
     region: "{{ aws_region }}"
-  when: aws_backup_enabled | bool
+    tags: "{{ aws_tags_default }}"
   delegate_to: localhost
   become: no
 
-- name: Ensure AWS backup plan exists
+- name: Ensure AWS Backup plan exists
   amazon.aws.backup_plan:
     state: present
     backup_plan_name: "{{ aws_backup_plan_name }}"
@@ -17,68 +26,30 @@
       - rule_name: "{{ aws_backup_plan_name }}"
         target_backup_vault_name: "{{ aws_backup_vault_name }}"
         schedule_expression: "{{ aws_backup_schedule_expression }}"
-        start_window_minutes: "{{ aws_backup_start_window_minutes }}"
-        completion_window_minutes: "{{ aws_backup_completion_window_minutes }}"
         lifecycle:
-          delete_after_days: "{{ aws_backup_delete_after_days }}"
-        recovery_point_tags: "{{ aws_backup_recovery_point_tags }}"
-  when: aws_backup_enabled | bool
+          delete_after_days: "{{ aws_backup_retention_days }}"
+        recovery_point_tags: "{{ aws_tags_default }}"
   delegate_to: localhost
   become: no
 
-- name: Gather existing AWS backup selections
-  amazon.aws.backup_selection_info:
-    backup_plan_name: "{{ aws_backup_plan_name }}"
-    region: "{{ aws_region }}"
-  when: aws_backup_enabled | bool
-  register: aws_backup_existing_selections_info
-  delegate_to: localhost
-  become: no
-
-- name: Ensure stale AWS backup selections are absent
+- name: Reconcile AWS Backup resource selections
   amazon.aws.backup_selection:
-    state: absent
+    state: "{{ (item.key in _aws_backup_enabled_resource_kinds) | ternary('present', 'absent') }}"
     backup_plan_name: "{{ aws_backup_plan_name }}"
-    selection_name: "{{ item.selection_name }}"
+    selection_name: "{{ aws_backup_plan_name }}-{{ item.key | replace('_', '-') }}"
+    iam_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ aws_iam_role_backup }}"
     region: "{{ aws_region }}"
-  when:
-    - aws_backup_enabled | bool
-    - item.selection_name not in aws_backup_selections.keys()
-  loop: "{{ aws_backup_existing_selections_info.backup_selections | default([]) }}"
-  loop_control:
-    label: "{{ item.selection_name }}"
-  delegate_to: localhost
-  become: no
-
-- name: Ensure AWS backup tag selections exist
-  amazon.aws.backup_selection:
-    state: present
-    backup_plan_name: "{{ aws_backup_plan_name }}"
-    selection_name: "{{ item.key }}"
-    iam_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/service-role/AWSBackupDefaultServiceRole"
-    region: "{{ aws_region }}"
-    resources:
-      - "*"
+    resources: "{{ item.value.resources }}"
     conditions:
       string_equals: >-
         {{
-          item.value
-          | combine(aws_tags_default)
+          aws_tags_default
+          | combine(item.value.tags)
           | prefix_keys('aws:ResourceTag/')
           | dict2items(key_name='condition_key', value_name='condition_value')
         }}
-  when: aws_backup_enabled | bool
-  loop: "{{ aws_backup_selections | dict2items }}"
+  loop: "{{ _aws_backup_resource_kind_selections | dict2items }}"
   loop_control:
     label: "{{ item.key }}"
-  delegate_to: localhost
-  become: no
-
-- name: Ensure AWS backup plan is absent
-  amazon.aws.backup_plan:
-    state: absent
-    backup_plan_name: "{{ aws_backup_plan_name }}"
-    region: "{{ aws_region }}"
-  when: not aws_backup_enabled | bool
   delegate_to: localhost
   become: no

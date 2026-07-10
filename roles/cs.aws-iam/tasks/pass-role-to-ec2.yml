@@ -11,3 +11,5 @@
     policy_description: Allow to maniuplate lambdas
     policy: "{{ lookup('template', 'lambda_access.policy.json') }}"
     state: present
+
+

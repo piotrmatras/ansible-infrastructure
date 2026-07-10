@@ -37,6 +37,7 @@ aws_iam_name_prefix: MageOps
 aws_iam_role_app_node: "{{ aws_iam_name_prefix }}AppNode"
 aws_iam_role_varnish: "{{ aws_iam_role_app_node }}"
 aws_iam_role_persistent_node: "{{ aws_iam_name_prefix }}PersistentNode"
+aws_iam_role_backup: "{{ aws_iam_name_prefix }}AWSBackup"
 aws_iam_role_basic_lambda_execution: "{{ aws_iam_name_prefix }}BasicLambdaExecution"
 aws_iam_role_autoscaling_event_lambda: "{{ aws_iam_name_prefix }}HandleAutoscalingEventLambdaExecution"
 aws_iam_role_update_varnish_backend_lambda_execution: "{{ aws_iam_name_prefix }}UpdateVarnishBackendsLambdaExecution"
@@ -555,21 +556,15 @@ efs_aws_security_group_id: "{{ aws_security_group_efs_id | default(omit, true) }
 # -------- AWS Backup  --------
 # -----------------------------
 
-# Configure one AWS Backup plan for all resources matching the provided tags.
-aws_backup_enabled: false
-
-# AWS Backup selections keyed by the selection name to create. Default AWS tags
-# are merged with each tag set. All tags must match.
-# Example:
-# aws_backup_selections:
-#   storage-nfs:
-#     Role: storage
-#     RoleStorageProtocol: nfs
-#   database:
-#     Role: database
-#   persistent:
-#     Role: persistent
-aws_backup_selections: {}
+# Opt in resource kinds to the shared daily backup plan. Every selected resource
+# must match aws_tags_default; persistent EBS volumes must also have Role=persistent.
+mageops_aws_backup: false
+aws_backup_resource_kinds:
+  efs: false
+  rds: false
+  persistent_ebs: false
+aws_backup_schedule_expression: "cron(0 5 ? * * *)"
+aws_backup_retention_days: 7
 
 # -------------------------------
 # --------  AWS Logging  --------
