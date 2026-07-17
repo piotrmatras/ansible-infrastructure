@@ -1,3 +1,10 @@
+- name: Validate SSH tunnel private key secret
+  assert:
+    that:
+      - (ssh_tunel_private_key_secret | default('', true) | string | length) > 0
+    fail_msg: "ssh_tunel_private_key_secret must be set when mageops_ssh_proxy_persistant is enabled."
+    quiet: true
+
 - name: Install private key
   file:
     path: /etc/ssh_tunel
@@ -13,6 +20,7 @@
     owner: root
     group: root
     content: "{{ ssh_tunel_private_key_secret | b64decode }}"
+  no_log: true
 
 - name: Install tunel service
   template:

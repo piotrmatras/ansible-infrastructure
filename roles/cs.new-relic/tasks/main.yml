@@ -2,20 +2,20 @@
   ansible.builtin.fail:
     msg: >-
       New Relic PHP agent role supports only x86_64 and aarch64.
-      Current architecture is {{ ansible_architecture }}.
-  when: ansible_architecture not in ['x86_64', 'aarch64']
+      Current architecture is {{ ansible_facts.architecture }}.
+  when: ansible_facts.architecture not in ['x86_64', 'aarch64']
 
 - name: Fail when New Relic ARM requirements are not met
   ansible.builtin.fail:
     msg: >-
       New Relic PHP agent on ARM64 requires PHP 8.0+.
-      Current php_version is {{ php_version }} on architecture {{ ansible_architecture }}.
+      Current php_version is {{ php_version }} on architecture {{ ansible_facts.architecture }}.
   when:
-    - ansible_architecture == 'aarch64'
+    - ansible_facts.architecture == 'aarch64'
     - php_version is version('8.0', '<')
 
 - name: Install New Relic via RPM on x86_64
-  when: ansible_architecture == 'x86_64'
+  when: ansible_facts.architecture == 'x86_64'
   block:
     - name: Import New Relic GPG key
       ansible.builtin.rpm_key:
@@ -37,7 +37,7 @@
       shell: "NR_INSTALL_SILENT=1 newrelic-install install"
 
 - name: Install New Relic via tarball on ARM64
-  when: ansible_architecture == 'aarch64'
+  when: ansible_facts.architecture == 'aarch64'
   block:
     - name: Ensure New Relic tarball root exists
       ansible.builtin.file:

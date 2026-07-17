@@ -47,6 +47,18 @@
       Name: "{{ aws_security_group_lb_name }}"
   register: aws_security_group_lb
 
+- name: Ensure security group for webnodes exists
+  ec2_group:
+    name: "{{ aws_security_group_app_name }}"
+    description: "{{ mageops_app_name }} Webnodes security group"
+    region: "{{ aws_region }}"
+    purge_rules: no
+    purge_rules_egress: no
+    vpc_id: "{{ aws_vpc_id }}"
+    tags: "{{ aws_tags_default | combine(ec2_sg_tags) }}"
+  vars:
+    ec2_sg_tags:
+      Name: "{{ aws_security_group_app_name }}"
 
 - name: Create security group for Varnish
   ec2_group:

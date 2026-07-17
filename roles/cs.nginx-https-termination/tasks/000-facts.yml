@@ -63,7 +63,7 @@
       conf_fragment_dir:      "{{ nginx_serverd_dir }}/{{ vhost.name }}"
 
       crt_do_install:         "{{ vhost.crt_install_cert_src is string and vhost.crt_install_key_src is string }}"
-      crt_do_acme:            "{{ vhost.params.letsencrypt | default(false, true) }}"
+      crt_do_acme:            "{{ vhost.params.letsencrypt | default(false, true) | bool }}"
 
       crt_live_dir:           "{{ https_termination_crt_live_dir }}"
       crt_archive_dir:        "{{ https_termination_crt_archive_dir }}/{{ vhost.name }}"
@@ -82,7 +82,7 @@
     https_termination_vhosts: "{{ https_termination_vhosts | combine({ vhost.name: https_termination_vhosts[vhost.name] | combine(vhost_derived) }) }}"
   vars:
     vhost_derived:
-      crt_do_bootstrap:             "{{ not vhost.crt_do_install or vhost.crt_do_acme }}"
+      crt_do_bootstrap:             "{{ not (vhost.crt_do_install | bool) or (vhost.crt_do_acme | bool) }}"
 
       crt_install_cert_path:        "{{ vhost.crt_archive_dir }}/installed.cert.pem"
       crt_install_key_path:         "{{ vhost.crt_archive_dir }}/installed.privkey.pem"
@@ -124,7 +124,7 @@
         '127.0.0.1',
         '::1',
         'localhost',
-        ansible_hostname,
+        ansible_facts.hostname,
         inventory_hostname
       ]
   loop: "{{ https_termination_vhosts.values() | list }}"

@@ -4,8 +4,8 @@
   roles:
     - role: cs.nginx-url-blacklist
     - role: cs.nginx-https-termination
+      https_termination_enabled: "{{ mageops_https_termination_enable }}"
       https_termination_upstream_port: "{{ mageops_varnish_port }}"
-      when: mageops_https_termination_enable
   vars:
     nginx_blacklist_urls: "{{ nginx_blacklist_urls_default + nginx_blacklist_urls_project | default([]) }}"
     nginx_config_cleanup: no

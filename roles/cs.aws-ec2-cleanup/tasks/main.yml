@@ -57,7 +57,7 @@
   loop: "{{ _to_keep }}"
 
 - name: Get available Launch Configurations (TEMPORARY STEP)
-  ec2_lc_info:
+  community.aws.autoscaling_launch_config_info:
     region: "{{ aws_region }}"
   register: _aws_ec2_cleanup_all_lcs
 

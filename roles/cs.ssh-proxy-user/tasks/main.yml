@@ -1,10 +1,18 @@
+- name: Validate SSH tunnel private key secret
+  assert:
+    that:
+      - (ssh_tunel_private_key_secret | default('', true) | string | length) > 0
+    fail_msg: "ssh_tunel_private_key_secret must be set when mageops_ssh_proxy_persistant is enabled."
+    quiet: true
+
 - name: Generate public key
-  shell: "ssh-keygen -y -f /dev/stdin <<< \"$( echo {{ ssh_tunel_private_key_secret }} | base64 -d )\""
-  args:
-    executable: /bin/bash
+  command:
+    cmd: ssh-keygen -y -f /dev/stdin
+    stdin: "{{ ssh_tunel_private_key_secret | b64decode }}"
   register: _ssh_tunel_public_key
   delegate_to: localhost
   become: no
+  no_log: true
 
 - name: Create tunel user
   user:

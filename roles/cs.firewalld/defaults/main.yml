@@ -12,7 +12,7 @@ firewall_public_ports: []
 firewall_trusted_networks: []
 
 # Interface used for the "internal" network, change if not the main public interface
-firewall_internal_interface: "{{ ansible_default_ipv4.interface }}"
+firewall_internal_interface: "{{ ansible_facts.default_ipv4.interface }}"
 # Ansible group name of servers that will be open to themselves forming a fake "VLAN"
 firewall_internal_group: all
 # Services which should be accessible in the "internal" network
@@ -40,7 +40,6 @@ firewall_guarded_ports:
     - 446/tcp       # smtps
     - 9200-9300/tcp # elasticsearch
     - 2049/tcp      # nfs
-
 
 
 

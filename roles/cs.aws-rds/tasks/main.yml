@@ -1,5 +1,5 @@
 - name: Create RDS subnet group
-  rds_subnet_group:
+  amazon.aws.rds_subnet_group:
     state: present
     region: "{{ aws_region }}"
     name: "{{ aws_rds_subnet_group_name }}"
@@ -13,7 +13,7 @@
   when: aws_rds_slowlog_enabled
 
 - name: Create RDS parameter group
-  rds_param_group:
+  amazon.aws.rds_instance_param_group:
     state: present
     region: "{{ aws_region }}"
     name: "{{ aws_rds_param_group_name }}"
@@ -23,14 +23,16 @@
     params: "{{ aws_rds_param_group_params | default(omit) }}"
 
 - name: Create RDS encryption key
-  aws_kms:
+  amazon.aws.kms_key:
     alias: "{{ aws_rds_encryption_key_name }}"
     region: "{{ aws_region }}"
     tags: "{{ aws_tags_default | combine(aws_tags_kms_database) }}"
-  when: aws_rds_storage_encrypt and aws_rds_dedicated_encryption_key
+  when:
+    - aws_rds_storage_encrypt | bool
+    - aws_rds_dedicated_encryption_key | bool
 
 - name: Wait for active rds modifications to finish
-  rds_instance_info:
+  amazon.aws.rds_instance_info:
     region: "{{ aws_region }}"
     db_instance_identifier: "{{ aws_rds_instance_name }}"
   register: aws_rds_current
@@ -39,7 +41,7 @@
   until: (aws_rds_current.instances|length) == 0 or aws_rds_current.instances[0].db_instance_status != "modifying"
 
 - name: Check current RDS configuration
-  rds_instance_info:
+  amazon.aws.rds_instance_info:
     region: "{{ aws_region }}"
     db_instance_identifier: "{{ aws_rds_instance_name }}"
   register: aws_rds_current
@@ -55,7 +57,7 @@
               --db-instance-class='{{ aws_rds_instance_type }}' \
               --apply-immediately
     - name: Wait for modification to start
-      rds_instance_info:
+      amazon.aws.rds_instance_info:
         region: "{{ aws_region }}"
         db_instance_identifier: "{{ aws_rds_instance_name }}"
       register: aws_rds_wait_start_result
@@ -63,7 +65,7 @@
       delay: 3
       until: aws_rds_wait_start_result.instances[0].db_instance_status == "modifying" or aws_rds_wait_start_result.instances[0].pending_modified_values.db_instance_class is not defined
     - name: Wait for modification to finish
-      rds_instance_info:
+      amazon.aws.rds_instance_info:
         region: "{{ aws_region }}"
         db_instance_identifier: "{{ aws_rds_instance_name }}"
       register: aws_rds_wait_finish_result
@@ -112,7 +114,7 @@
   loop: "{{ aws_rds_upgrade_plan }}"
 
 - name: Create MySQL/MariaDB RDS
-  rds_instance:
+  amazon.aws.rds_instance:
     region: "{{ aws_region }}"
     publicly_accessible: "{{ aws_rds_publicly_accessible }}"
     db_instance_identifier: "{{ aws_rds_instance_name }}"
@@ -142,7 +144,7 @@
     wait: yes
 
 - name: Wait for upgrade to finish
-  rds_instance_info:
+  amazon.aws.rds_instance_info:
     region: "{{ aws_region }}"
     db_instance_identifier: "{{ aws_rds_instance_name }}"
   register: _aws_rds_wait_upgrade_result
@@ -152,7 +154,7 @@
   when: (aws_rds_current.instances|length) > 0 and aws_rds_current.instances[0].engine_version != aws_rds_db_engine_version
 
 - name: Remove temporary parameter groups used for engine upgrade
-  rds_param_group:
+  amazon.aws.rds_instance_param_group:
     state: absent
     name: "{{ item }}"
     region: "{{ aws_region }}"

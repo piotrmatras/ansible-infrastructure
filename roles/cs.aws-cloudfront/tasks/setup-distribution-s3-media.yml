@@ -15,12 +15,14 @@
 
 - name: Create cloudfront distribution
   shell: "aws cloudfront create-distribution --distribution-config=file://{{ aws_cloudfront_distribution_temp_dir.path }}/config.json"
-  when: not aws_cloudfront_distribution | default(false, true)
+  when: (aws_cloudfront_distribution | default(false, true)) is sameas false
   register: aws_cloudfront_create_distribution_cmd
 
 - name: Update cloudfront distribution
   shell: "aws cloudfront update-distribution --distribution-config=file://{{ aws_cloudfront_distribution_temp_dir.path }}/config.json --id={{ aws_cloudfront_distribution.Id }} --if-match={{ aws_cloudfront_distribution.ETag }}"
-  when: aws_cloudfront_distribution | default(false, true)
+  when:
+    - aws_cloudfront_distribution is defined
+    - aws_cloudfront_distribution is not sameas false
   register: aws_cloudfront_update_distribution_cmd
 
 - name: Set cloudfront distribution id fact
