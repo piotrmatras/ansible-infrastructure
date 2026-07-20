@@ -33,8 +33,9 @@ magento_session_max_redis_concurrency: 15
 
 # --- Symfony Cache based Level 2 cache (Magento >= 2.4.9) ---
 # Magento 2.4.9 ships a new, PSR-6 compliant L2 cache backend ('symfony_l2')
+# Auto-selected based on magento_version; override to force a specific backend.
 # See: https://experienceleague.adobe.com/en/docs/commerce-operations/configuration-guide/cache/level-two-cache
-magento_redis_cache_l2_symfony: no
+magento_redis_cache_l2_symfony: "{{ magento_version is version('2.4.9', '>=') }}"
 magento_redis_cache_l2_symfony_serializer: igbinary
 magento_redis_cache_l2_symfony_compression_lib: gzip
 magento_redis_cache_l2_symfony_persistent: yes
