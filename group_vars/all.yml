@@ -2219,3 +2219,11 @@ mageops_new_relic_enabled: no
 # ----- Google Tag Manger -----
 # ---------------------
 gtm_enabled: no
+# Supported values: subdomain, path
+gtm_routing_mode: subdomain
+# Path segment without leading or trailing slash, for example: gtm
+gtm_path_prefix: ""
+gtm_preview_path_prefix: ""
+gtm_path_host: "{{ magento_hostname | default('') }}"
+# Set the real value in credentials.yaml.
+gtm_container_config: ""
