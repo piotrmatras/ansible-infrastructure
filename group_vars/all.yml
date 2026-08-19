@@ -1028,16 +1028,12 @@ aws_magento_cron_crons: "{{ (aws_magento_cron_crons_tpl | flatten) + aws_magento
 # --------  Magento Deploy  --------
 # ----------------------------------
 
-magento_post_deploy_commands_pio:
-  - "bin/magento config:set dev/lazy_resize/token_secret {{ lazy_resize_secret }}"
-
 # Magento commands that should be always executed as the last post-deploy step
 # on one of the *new* web-nodes (created from the AMI being deployed).
 magento_post_deploy_commands_basic_tpl: [
   # Flush the full_page cache in case old page version got cached in varnish
   # between last flush and new nodes going up.
-  [ "bin/magento cache:flush full_page" ],
-  [ "{{ mageops_pio_worker_enable | ternary(magento_post_deploy_commands_pio, []) }}" ]
+  [ "bin/magento cache:flush full_page" ]
 ]
 
 # Use this variable to define custom per-project commands
