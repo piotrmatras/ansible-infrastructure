@@ -16,6 +16,14 @@
         region: "{{ aws_region }}"
         state: running
         wait: yes
+      register: start_ec2_result
+      # Retry only capacity errors so that unexpected failures fail immediately.
+      until: >-
+        start_ec2_result is not failed or
+        'InsufficientInstanceCapacity' not in (start_ec2_result.msg | default(''))
+      # Retry delays total up to four hours (240 retries x 60 seconds)
+      retries: 240
+      delay: 60
       with_items:
         - "{{ aws_persistent_node_instance }}"
         - "{{ aws_varnish_node_instance }}"
