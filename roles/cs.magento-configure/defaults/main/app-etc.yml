@@ -233,13 +233,12 @@ magento_app_etc_config_cache_default_redis_l2_symfony:
             read_timeout: "{{ magento_redis_cache_l2_symfony_read_timeout }}"
             use_lua: "{{ magento_redis_cache_l2_symfony_use_lua | ternary('1', '0') }}"
             preload_keys:
-              - 061_EAV_ENTITY_TYPES:hash
-              - 061_GLOBAL_PLUGIN_LIST:hash
-              - 061_DB_IS_UP_TO_DATE:hash
-              - 061_SYSTEM_DEFAULT:hash
+              - EAV_ENTITY_TYPES:hash
+              - db_is_up_to_date:hash
+              - system_default:hash
           local_backend: file
           local_backend_options:
-            cache_dir: "{{ magento_redis_cache_l2_dir }}"
+            cache_dir: "{{ magento_redis_cache_l2_dir }}/magento_l1"
           cleanup_percentage: "{{ magento_redis_cache_l2_symfony_cleanup_percentage }}"
         frontend_options:
           write_control: false
@@ -262,7 +261,7 @@ magento_app_etc_config_cache_default_redis_l2_symfony:
             use_lua: "{{ magento_redis_cache_l2_symfony_use_lua | ternary('1', '0') }}"
           local_backend: file
           local_backend_options:
-            cache_dir: "{{ magento_redis_cache_l2_dir }}"
+            cache_dir: "{{ magento_redis_cache_l2_dir }}/magento_l1_stale"
           use_stale_cache: true
           cleanup_percentage: "{{ magento_redis_cache_l2_symfony_cleanup_percentage }}"
         frontend_options:
