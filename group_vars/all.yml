@@ -1735,7 +1735,6 @@ varnish_original_url: false
 varnish_html_cache_control_max_age: 60
 varnish_strip_params:
   - "gclid"
-  - "gad_source"
   - "gclsrc"
   - "utm_[^=&]+"
   - "gdftrk"
@@ -1743,6 +1742,9 @@ varnish_strip_params:
   - "_gl" # google analytics
   - "mc_[^=&]+" # mailchimp
   - "trk_[^=&]+"
+  - "_bta_[^=&]+" # bronto
+  - "mtm_[^=&]+" # matomo
+  - "pk_[^=&]+" # matomo
   - "dm_i"
   - "fbclid" # facebook
   - "igshid" # instagram
