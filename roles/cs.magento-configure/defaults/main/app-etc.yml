@@ -71,6 +71,19 @@ magento_app_etc_config:
     graphql_query_resolver_result: 1
     search_ajax_suggest: 1
 
+  backpressure:
+    logger:
+      type: redis
+      options:
+        server: "{{ mageops_redis_sessions_host }}"
+        port: "{{ mageops_redis_sessions_port }}"
+        timeout: 1
+        persistent: persistent
+        db: "1"
+        user: ""
+        password: ""
+      id-prefix: "062_"
+
   install:
     date: "Tue, 11 Nov 2016 11:11:00 +0000"
 
